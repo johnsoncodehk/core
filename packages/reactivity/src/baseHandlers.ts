@@ -61,7 +61,13 @@ function createArrayInstrumentations() {
       const res = arr[key](...args)
       if (res === -1 || res === false) {
         // if that didn't work, run it again using raw values.
-        return arr[key](...args.map(toRaw))
+        let hasRaw = false
+        const rawArgs = args.map(arg => {
+          const raw = toRaw(arg)
+          hasRaw ||= raw !== arg
+          return raw
+        })
+        return !hasRaw ? res : arr[key](...rawArgs)
       } else {
         return res
       }
