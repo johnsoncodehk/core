@@ -140,9 +140,8 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
           key === 'some'
         ) {
           return (...args: unknown[]) => {
-            const res = (target as any)[key].apply(target, args)
             track(target, TrackOpTypes.GET, ARRAY_ANY_VALUES_KEY)
-            return res
+            return (target as any)[key].apply(target, args)
           }
         }
         if (
