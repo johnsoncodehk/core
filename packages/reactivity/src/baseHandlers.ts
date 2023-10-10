@@ -57,7 +57,6 @@ function createArrayInstrumentations() {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
       const arr = toRaw(this) as any
       track(arr, TrackOpTypes.GET, ARRAY_ANY_VALUES_KEY)
-      track(arr, TrackOpTypes.GET, ARRAY_ALL_VALUES_KEY)
       // we run the method using the original args first (which may be reactive)
       const res = arr[key](...args)
       if (res === -1 || res === false) {
