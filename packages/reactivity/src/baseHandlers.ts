@@ -18,7 +18,9 @@ import {
   pauseTracking,
   resetTracking,
   pauseScheduling,
-  resetScheduling
+  resetScheduling,
+  ARRAY_ANY_VALUES_KEY,
+  ARRAY_ALL_VALUES_KEY
 } from './effect'
 import {
   isObject,
@@ -54,14 +56,18 @@ function createArrayInstrumentations() {
   ;(['includes', 'indexOf', 'lastIndexOf'] as const).forEach(key => {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
       const arr = toRaw(this) as any
-      for (let i = 0, l = this.length; i < l; i++) {
-        track(arr, TrackOpTypes.GET, i + '')
-      }
+      track(arr, TrackOpTypes.GET, ARRAY_ANY_VALUES_KEY)
       // we run the method using the original args first (which may be reactive)
       const res = arr[key](...args)
       if (res === -1 || res === false) {
         // if that didn't work, run it again using raw values.
-        return arr[key](...args.map(toRaw))
+        let hasRaw = false
+        const rawArgs = args.map(arg => {
+          const raw = toRaw(arg)
+          hasRaw ||= raw !== arg
+          return raw
+        })
+        return !hasRaw ? res : arr[key](...rawArgs)
       } else {
         return res
       }
@@ -121,6 +127,54 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
     const targetIsArray = isArray(target)
 
     if (!isReadonly) {
+      if (targetIsArray) {
+        if (
+          key === 'reduce' ||
+          key === 'forEach' ||
+          key === 'filter' ||
+          key === 'map' ||
+          key === 'every' ||
+          // TODO: find(), findIndex(), some() no need to track full length
+          key === 'find' ||
+          key === 'findIndex' ||
+          key === 'some'
+        ) {
+          return (...args: unknown[]) => {
+            track(target, TrackOpTypes.GET, ARRAY_ANY_VALUES_KEY)
+            return (target as any)[key].apply(target, args)
+          }
+        }
+        if (
+          key === 'shift' ||
+          key === 'unshift'
+          // key === 'splice'
+        ) {
+          return (...args: unknown[]) => {
+            const oldLength = target.length
+            const res = (target as any)[key].apply(target, args)
+            if (oldLength !== target.length) {
+              pauseScheduling()
+              trigger(target, TriggerOpTypes.SET, ARRAY_ANY_VALUES_KEY)
+              trigger(target, TriggerOpTypes.SET, ARRAY_ALL_VALUES_KEY)
+              trigger(target, TriggerOpTypes.SET, 'length', target.length)
+              resetScheduling()
+            }
+            return res
+          }
+        }
+        if (key === 'sort' || key === 'reverse') {
+          return (...args: unknown[]) => {
+            const res = (target as any)[key].apply(target, args)
+            if (target.length >= 2) {
+              pauseScheduling()
+              trigger(target, TriggerOpTypes.SET, ARRAY_ANY_VALUES_KEY)
+              trigger(target, TriggerOpTypes.SET, ARRAY_ALL_VALUES_KEY)
+              resetScheduling()
+            }
+            return res
+          }
+        }
+      }
       if (targetIsArray && hasOwn(arrayInstrumentations, key)) {
         return Reflect.get(arrayInstrumentations, key, receiver)
       }
@@ -137,6 +191,9 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
 
     if (!isReadonly) {
       track(target, TrackOpTypes.GET, key)
+      if (targetIsArray && isIntegerKey(key)) {
+        track(target, TrackOpTypes.GET, ARRAY_ALL_VALUES_KEY)
+      }
     }
 
     if (shallow) {
@@ -194,11 +251,16 @@ class MutableReactiveHandler extends BaseReactiveHandler {
     const result = Reflect.set(target, key, value, receiver)
     // don't trigger if target is something up in the prototype chain of original
     if (target === toRaw(receiver)) {
+      pauseScheduling()
       if (!hadKey) {
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
+      if (isArray(target) && isIntegerKey(key)) {
+        trigger(target, TriggerOpTypes.SET, ARRAY_ANY_VALUES_KEY)
+      }
+      resetScheduling()
     }
     return result
   }

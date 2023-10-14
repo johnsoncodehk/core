@@ -31,6 +31,8 @@ export type DebuggerEventExtraInfo = {
 
 export let activeEffect: ReactiveEffect | undefined
 
+export const ARRAY_ANY_VALUES_KEY = Symbol(__DEV__ ? 'Array any values' : '')
+export const ARRAY_ALL_VALUES_KEY = Symbol(__DEV__ ? 'Array all values' : '')
 export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')
 export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
 
@@ -341,6 +343,8 @@ export function trigger(
   } else if (key === 'length' && isArray(target)) {
     const newLength = Number(newValue)
     depsMap.forEach((dep, key) => {
+      if (key === ARRAY_ANY_VALUES_KEY) return
+      if (key === ARRAY_ALL_VALUES_KEY) return
       if (key === 'length' || key >= newLength) {
         deps.push(dep)
       }
