@@ -3,6 +3,7 @@ import {
   EffectScope,
   type ReactiveEffect,
   TrackOpTypes,
+  activeEffect,
   isRef,
   markRaw,
   pauseTracking,
@@ -613,6 +614,8 @@ export function createComponentInstance(
     ec: null,
     sp: null,
   }
+  // @ts-expect-error
+  instance.scope.__componentInstance = instance
   if (__DEV__) {
     instance.ctx = createDevRenderContext(instance)
   } else {
@@ -631,8 +634,25 @@ export function createComponentInstance(
 
 export let currentInstance: ComponentInternalInstance | null = null
 
-export const getCurrentInstance: () => ComponentInternalInstance | null = () =>
-  currentInstance || currentRenderingInstance
+export const getCurrentInstance: () => ComponentInternalInstance | null =
+  () => {
+    if (currentInstance) {
+      return currentInstance
+    } else if (currentRenderingInstance) {
+      return currentRenderingInstance
+    } else if (activeEffect?.scope) {
+      let current: EffectScope | undefined = activeEffect.scope
+      while (current) {
+        // @ts-expect-error
+        if (current.__componentInstance) {
+          // @ts-expect-error
+          return current.__componentInstance
+        }
+        current = current.parent
+      }
+    }
+    return null
+  }
 
 let internalSetCurrentInstance: (
   instance: ComponentInternalInstance | null,

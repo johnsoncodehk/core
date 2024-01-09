@@ -46,6 +46,7 @@ export {
 } from './computed'
 export { deferredComputed } from './deferredComputed'
 export {
+  activeEffect,
   effect,
   stop,
   enableTracking,
