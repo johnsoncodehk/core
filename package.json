@@ -40,7 +40,9 @@
     "build-ssr-esm": "node scripts/build.js compiler-sfc server-renderer -f esm-browser",
     "build-sfc-playground-self": "cd packages/sfc-playground && npm run build",
     "preinstall": "npx only-allow pnpm",
-    "postinstall": "simple-git-hooks"
+    "postinstall": "simple-git-hooks",
+    "eslint-time": "time eslint",
+    "tsslint-time": "time tsslint --project ./tsconfig.json"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged && pnpm check",
@@ -68,6 +70,9 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "5.0.4",
     "@rollup/plugin-terser": "^0.4.4",
+    "@tsslint/cli": "^1.0.6",
+    "@tsslint/config": "^1.0.6",
+    "@tsslint/eslint": "^1.0.6",
     "@types/hash-sum": "^1.0.2",
     "@types/minimist": "^1.2.5",
     "@types/node": "^20.14.2",
