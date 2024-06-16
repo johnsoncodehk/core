@@ -36,14 +36,14 @@ importers:
         specifier: ^0.4.4
         version: 0.4.4(rollup@4.18.0)
       '@tsslint/cli':
-        specifier: ^1.0.7
-        version: 1.0.7(typescript@5.4.5)
+        specifier: ^1.0.8
+        version: 1.0.8(typescript@5.4.5)
       '@tsslint/config':
-        specifier: ^1.0.7
-        version: 1.0.7
+        specifier: ^1.0.8
+        version: 1.0.8
       '@tsslint/eslint':
-        specifier: ^1.0.7
-        version: 1.0.7(typescript@5.4.5)
+        specifier: ^1.0.8
+        version: 1.0.8(typescript@5.4.5)
       '@types/hash-sum':
         specifier: ^1.0.2
         version: 1.0.2
@@ -1073,23 +1073,23 @@ packages:
   '@tootallnate/quickjs-emscripten@0.23.0':
     resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
 
-  '@tsslint/cli@1.0.7':
-    resolution: {integrity: sha512-wFC0XMVlumcr8ZuEO1gxnzVx1k0cooqTG0/PeWI0x/QV3UARulfdmtId7D6LSCcLnMJEOm9akjvJmBVtcc5/9g==}
+  '@tsslint/cli@1.0.8':
+    resolution: {integrity: sha512-igfHAcORtd5WXpbufGbQXAvdhqzgIjE/W50Lvxtn8RHDEoDRVksi17TLRgVLtAjBIJ6qyLTKqopgI5l9+Uey/Q==}
     hasBin: true
     peerDependencies:
       typescript: '*'
 
-  '@tsslint/config@1.0.7':
-    resolution: {integrity: sha512-XBFNY0K6tWSZXv8DZkWuMffcbQ1pcWRE+pWT5llzDh0Dq8IF6TkSM+sHtHhvHAruCIQnlBd1Y1YLfTvjFIz/aA==}
+  '@tsslint/config@1.0.8':
+    resolution: {integrity: sha512-nYoO/wJDAzhjk5p5paXq/Faw/eDV/g58s+us1xApSCsYhFp9htehV6hJknQBAUNyt3xSZojLH/6mK9fAcwn+Qw==}
 
-  '@tsslint/core@1.0.7':
-    resolution: {integrity: sha512-IL04Un3vuFBuPu5+TEuhhZc4BEOX4kYAHqcq3es5I9U6PPGrARvT6ypOClza/NrxAYbUYRg7Tv4bsdLIeEpDeQ==}
+  '@tsslint/core@1.0.8':
+    resolution: {integrity: sha512-hi2NzjBOq5dPo0HquDG4QtMElrHXh1t+ofgqFs0ep8t/G8ZE8hV3qdibScxrQukt3naZ+51KJlNHwCUlJ2T23Q==}
 
-  '@tsslint/eslint@1.0.7':
-    resolution: {integrity: sha512-lmr8YNyOAMSViGGc2C1c+8FNZ+iCHHUK9GdkaJOQ65tnsIj384SgXDj/zXlbZbLh4yX7fBR8xKVaYkr5kBrJ4g==}
+  '@tsslint/eslint@1.0.8':
+    resolution: {integrity: sha512-A3QrZsVhN8v7lnL9CPTi4AWLYM0twaEyX6WzYdFQXE1PiDYOlD9s0jvKK3JXkSo2eqDuZPUBytdXSqESATo8fw==}
 
-  '@tsslint/types@1.0.7':
-    resolution: {integrity: sha512-axZXE4ljmLCZdXh40zaLcfQDMfptbdA3lJZUirDGmrpOxReP7oVLUz6/3syBB6W+MfUQhrAjJF1YWLG0DXsiHw==}
+  '@tsslint/types@1.0.8':
+    resolution: {integrity: sha512-D1begtFSZb+cPjYiD5p7mJDkrwZreOGDRurKaBl12lEgk/XMpSIEs46spheAYpwCLfQM7qMwHouoNYaTtT4aNg==}
 
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
@@ -4168,25 +4168,25 @@ snapshots:
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
 
-  '@tsslint/cli@1.0.7(typescript@5.4.5)':
+  '@tsslint/cli@1.0.8(typescript@5.4.5)':
     dependencies:
       '@clack/prompts': 0.7.0
-      '@tsslint/config': 1.0.7
-      '@tsslint/core': 1.0.7
+      '@tsslint/config': 1.0.8
+      '@tsslint/core': 1.0.8
       glob: 10.4.1
       typescript: 5.4.5
 
-  '@tsslint/config@1.0.7':
+  '@tsslint/config@1.0.8':
     dependencies:
-      '@tsslint/types': 1.0.7
+      '@tsslint/types': 1.0.8
       esbuild: 0.21.5
 
-  '@tsslint/core@1.0.7':
+  '@tsslint/core@1.0.8':
     dependencies:
       error-stack-parser: 2.1.4
       source-map-support: 0.5.21
 
-  '@tsslint/eslint@1.0.7(typescript@5.4.5)':
+  '@tsslint/eslint@1.0.8(typescript@5.4.5)':
     dependencies:
       '@typescript-eslint/scope-manager': 7.13.0
       '@typescript-eslint/typescript-estree': 7.13.0(typescript@5.4.5)
@@ -4195,7 +4195,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@tsslint/types@1.0.7': {}
+  '@tsslint/types@1.0.8': {}
 
   '@types/estree@1.0.5': {}
 
