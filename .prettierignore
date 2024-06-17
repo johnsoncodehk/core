@@ -2,3 +2,4 @@ dist
 *.md
 *.html
 pnpm-lock.yaml
+tsslint.config.ts
