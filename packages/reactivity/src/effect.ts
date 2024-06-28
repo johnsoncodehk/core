@@ -91,10 +91,10 @@ export class ReactiveEffect<T = any> {
           }
         }
       }
+      resetTracking()
       if (this._dirtyLevel === DirtyLevels.QueryingDirty) {
         this._dirtyLevel = DirtyLevels.NotDirty
       }
-      resetTracking()
     }
     return this._dirtyLevel >= DirtyLevels.Dirty
   }
