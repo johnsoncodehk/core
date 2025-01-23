@@ -5,13 +5,20 @@ import type {
   WatchStopHandle,
 } from '@vue/reactivity'
 import type {
+  AllowedComponentProps,
+  ComponentCustomProps,
   ComponentInternalInstance,
   ComponentPublicInstance,
+  VNodeProps,
   WatchOptions,
   nextTick,
 } from '@vue/runtime-core'
 import type { UnionToIntersection } from '@vue/shared'
 import type { PropOptions } from './componentProps'
+
+export type PublicProps = VNodeProps &
+  AllowedComponentProps &
+  ComponentCustomProps
 
 export declare function defineComponent<
   TypeProps = unknown,
@@ -28,9 +35,10 @@ export declare function defineComponent<
   Methods = {},
   SetupReturns = {},
   // Resolving...
-  Props = TypeProps extends unknown
+  Props = (TypeProps extends unknown
     ? ResolvePropsOption<PropsOption, PropKeys>
-    : TypeProps,
+    : TypeProps) &
+    PublicProps,
   Emit = TypeEmits extends unknown
     ? ResolveEmitsOption<EmitsOption, EventNames>
     : TypeEmits,
