@@ -338,7 +338,7 @@ type WatchOptionItem = string | WatchCallback | ObjectWatchOptionItem
 
 type ComponentWatchOptionItem = WatchOptionItem | WatchOptionItem[]
 
-type ComponentWatchOptions = Record<string, ComponentWatchOptionItem>
+export type ComponentWatchOptions = Record<string, ComponentWatchOptionItem>
 
 export type ComponentProvideOptions = ObjectProvideOptions | Function
 

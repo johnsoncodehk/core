@@ -7,6 +7,7 @@ import type {
 import type {
   AllowedComponentProps,
   ComponentCustomProps,
+  ComponentInjectOptions,
   ComponentInternalInstance,
   ComponentPublicInstance,
   VNodeProps,
@@ -14,6 +15,9 @@ import type {
   nextTick,
 } from '@vue/runtime-core'
 import type { UnionToIntersection } from '@vue/shared'
+import { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
+import { CompatConfig } from './compat/compatConfig'
+import { ComponentWatchOptions } from './componentOptions'
 import type { PropOptions } from './componentProps'
 
 export type PublicProps = VNodeProps &
@@ -25,12 +29,14 @@ export declare function defineComponent<
   TypeEmits = unknown,
   TypeEl = any,
   TypeRefs = {},
-  Mixins extends any[] = [],
+  Mixin = {},
   Data = {},
   PropsOption = Record<string, PropOptions>,
   EmitsOption = {},
+  InjectOption extends ComponentInjectOptions = {},
   PropKeys extends string = string,
   EventNames extends string = string,
+  InjectKeys extends string = string,
   ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
   Methods = {},
   SetupReturns = {},
@@ -77,11 +83,15 @@ export declare function defineComponent<
           : (...args: [any, any, OnCleanup]) => any,
         options?: WatchOptions,
       ): WatchStopHandle
-    } & ResolveMixins<UnionToIntersection<Mixins[number]>>,
+    } & ResolveMixins<UnionToIntersection<Mixin>>,
 >(
   _:
     | ({
-        [key: string]: unknown
+        props?: PropsOption | PropKeys[]
+        emits?: EmitsOption | EventNames[]
+        setup?(this: void, props: Props, ctx: SetupContext): SetupReturns
+
+        //#region Language Tools
         /**
          * @private for language-tools use only
          */
@@ -98,13 +108,59 @@ export declare function defineComponent<
          * @private for language-tools use only
          */
         __typeEl?: TypeEl
-        mixins?: Mixins
-        props?: PropsOption | PropKeys[]
-        emits?: EmitsOption | EventNames[]
+        //#endregion
+
+        //#region Legacy Options
+        [key: string]: unknown
+        compatConfig?: CompatConfig
+        data?: () => Data
         computed?: ComputedOptions
         methods?: Methods
-        data?: () => Data
-        setup?(this: void, props: Props, ctx: SetupContext): SetupReturns
+        watch?: ComponentWatchOptions
+        // provide?: Provide
+        inject?: InjectOption | InjectKeys[]
+        // assets
+        filters?: Record<string, Function>
+
+        // composition
+        mixins?: Mixin[]
+        // extends?: Extends
+
+        // lifecycle
+        beforeCreate?(): any
+        created?(): any
+        beforeMount?(): any
+        mounted?(): any
+        beforeUpdate?(): any
+        updated?(): any
+        activated?(): any
+        deactivated?(): any
+        /** @deprecated use `beforeUnmount` instead */
+        beforeDestroy?(): any
+        beforeUnmount?(): any
+        /** @deprecated use `unmounted` instead */
+        destroyed?(): any
+        unmounted?(): any
+        renderTracked?: DebuggerHook
+        renderTriggered?: DebuggerHook
+        errorCaptured?: ErrorCapturedHook
+
+        /**
+         * runtime compile only
+         * @deprecated use `compilerOptions.delimiters` instead.
+         */
+        delimiters?: [string, string]
+
+        /**
+         * #3468
+         *
+         * type-only, used to assist Mixin's type inference,
+         * typescript will try to simplify the inferred `Mixin` type,
+         * with the `__differentiator`, typescript won't be able to combine different mixins,
+         * because the `__differentiator` will be different
+         */
+        __differentiator?: keyof Data | keyof ComputedOptions | keyof Methods
+        //#endregion
       } & ThisType<_InstanceType>)
     | ((this: void, props: Props, ctx: SetupContext) => SetupReturns),
 ): {
