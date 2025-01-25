@@ -13,6 +13,8 @@ import type {
   ComponentPublicInstance,
   ConcreteComponent,
   Directive,
+  ExtractPropTypes,
+  ExtractPublicPropTypes,
   RuntimeCompilerOptions,
   SlotsType,
   VNodeProps,
@@ -60,12 +62,20 @@ export declare function defineComponent<
     [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?: EmitEvents[K]
   },
   InternalProps = (TypeProps extends undefined
-    ? ResolvePropsOption<PropsOption, PropKeys>
+    ? PropsOption extends string[]
+      ? {
+          [K in PropKeys]?: any
+        }
+      : ExtractPropTypes<PropsOption>
     : TypeProps) &
     EmitEventProps &
     PublicProps,
   ExternalProps = (TypeProps extends undefined
-    ? ResolvePropsOption<PropsOption, PropKeys>
+    ? PropsOption extends string[]
+      ? {
+          [K in PropKeys]?: any
+        }
+      : ExtractPublicPropTypes<PropsOption>
     : TypeProps) &
     EmitEventProps &
     PublicProps,
@@ -325,25 +335,4 @@ type ResolveEmitsOption<EmitsOption, EventNames> = EmitsOption extends string[]
           ) => void
         }[keyof EmitsOption]
       >
-//#endregion
-
-//#region props
-type ResolvePropsOption<
-  PropsOption,
-  PropKeys extends string,
-> = PropsOption extends string[]
-  ? {
-      [K in PropKeys]?: any
-    }
-  : {
-      [K in keyof PropsOption]: PropsOption[K] extends {
-        type: infer PropType
-      }
-        ? PropType extends new (...args: any) => {
-            valueOf(): infer Value
-          }
-          ? Value
-          : PropType
-        : PropsOption[K]
-    }
 //#endregion
