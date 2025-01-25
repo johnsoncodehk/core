@@ -337,15 +337,13 @@ type ResolvePropsOption<
     }
   : {
       [K in keyof PropsOption]: PropsOption[K] extends {
-        type: infer Type
+        type: infer PropType
       }
-        ? ResolvePropType<Type>
+        ? PropType extends new (...args: any) => {
+            valueOf(): infer Value
+          }
+          ? Value
+          : PropType
         : PropsOption[K]
     }
-
-type ResolvePropType<PropType> = PropType extends new (...args: any) => {
-  valueOf(): infer Value
-}
-  ? Value
-  : PropType
 //#endregion
