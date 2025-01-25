@@ -25,6 +25,7 @@ import { CompatConfig } from './compat/compatConfig'
 import { ComponentInternalOptions } from './component'
 import { ComponentWatchOptions } from './componentOptions'
 import type { PropOptions } from './componentProps'
+import { UnwrapSlotsType } from './componentSlots'
 
 export type PublicProps = VNodeProps &
   AllowedComponentProps &
@@ -60,7 +61,7 @@ export declare function defineComponent<
     : TypeEmits,
   SetupContext = {
     attrs: Data
-    slots: any // UnwrapSlotsType<S>
+    slots: UnwrapSlotsType<Slots>
     emit: Emit
     expose: <Exposed extends Record<string, any> = Record<string, any>>(
       exposed?: Exposed,
@@ -77,7 +78,7 @@ export declare function defineComponent<
       $props: Props
       $attrs: Data
       $refs: Data & TypeRefs
-      // $slots: UnwrapSlotsType<S>
+      $slots: UnwrapSlotsType<Slots>
       $root: ComponentPublicInstance | null
       $parent: ComponentPublicInstance | null
       $host: Element | null
