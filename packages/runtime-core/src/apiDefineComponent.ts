@@ -36,8 +36,8 @@ export declare function defineComponent<
   Directives extends Record<string, Directive> = {},
   Slots extends SlotsType = {},
   Exposed extends string = string,
-  TypeProps = unknown,
-  TypeEmits = unknown,
+  TypeProps = undefined,
+  TypeEmits = undefined,
   TypeEl = any,
   TypeRefs = {},
   Mixin = {},
@@ -52,15 +52,23 @@ export declare function defineComponent<
   Methods = {},
   SetupReturns = {},
   // Resolving...
-  Emit = TypeEmits extends unknown
+  Emit = TypeEmits extends undefined
     ? ResolveEmitsOption<EmitsOption, EventNames>
     : TypeEmits,
   EmitEvents = NormalizeEmits<Emit>,
-  Props = (TypeProps extends unknown
-    ? ResolvePropsOption<PropsOption, PropKeys>
-    : TypeProps) & {
+  EmitEventProps = {
     [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?: EmitEvents[K]
-  } & PublicProps,
+  },
+  InternalProps = (TypeProps extends undefined
+    ? ResolvePropsOption<PropsOption, PropKeys>
+    : TypeProps) &
+    EmitEventProps &
+    PublicProps,
+  ExternalProps = (TypeProps extends undefined
+    ? ResolvePropsOption<PropsOption, PropKeys>
+    : TypeProps) &
+    EmitEventProps &
+    PublicProps,
   SetupContext = {
     attrs: Data
     slots: UnwrapSlotsType<Slots>
@@ -70,14 +78,14 @@ export declare function defineComponent<
     ) => void
   },
   _InstanceType = Data &
-    Props &
+    InternalProps &
     Methods &
     ShallowUnwrapRef<SetupReturns> & {
       [K in keyof ComputedOptions]: ReturnType<ComputedOptions[K]>
     } & {
       $: ComponentInternalInstance
       $data: Data
-      $props: Props
+      $props: ExternalProps
       $attrs: Data
       $refs: Data & TypeRefs
       $slots: UnwrapSlotsType<Slots>
@@ -103,7 +111,11 @@ export declare function defineComponent<
         props?: PropsOption | PropKeys[]
 
         //#region ComponentOptionsBase
-        setup?(this: void, props: Props, ctx: SetupContext): SetupReturns
+        setup?(
+          this: void,
+          props: InternalProps,
+          ctx: SetupContext,
+        ): SetupReturns
         name?: string
         template?: string | object // can be a direct DOM node
         // Note: we are intentionally using the signature-less `Function` type here
@@ -260,7 +272,7 @@ export declare function defineComponent<
         __differentiator?: keyof Data | keyof ComputedOptions | keyof Methods
         //#endregion
       } & ThisType<_InstanceType>)
-    | ((this: void, props: Props, ctx: SetupContext) => SetupReturns),
+    | ((this: void, props: InternalProps, ctx: SetupContext) => SetupReturns),
 ): ComponentInternalOptions & {
   new (): _InstanceType
 }
@@ -321,7 +333,7 @@ type ResolvePropsOption<
   PropKeys extends string,
 > = PropsOption extends string[]
   ? {
-      [K in PropKeys]: any
+      [K in PropKeys]?: any
     }
   : {
       [K in keyof PropsOption]: PropsOption[K] extends {
