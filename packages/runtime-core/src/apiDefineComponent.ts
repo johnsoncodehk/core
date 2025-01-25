@@ -20,12 +20,12 @@ import type {
   nextTick,
 } from '@vue/runtime-core'
 import type { UnionToIntersection } from '@vue/shared'
-import { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
-import { CompatConfig } from './compat/compatConfig'
-import { ComponentInternalOptions } from './component'
-import { ComponentWatchOptions } from './componentOptions'
+import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
+import type { CompatConfig } from './compat/compatConfig'
+import type { ComponentInternalOptions } from './component'
+import type { ComponentWatchOptions } from './componentOptions'
 import type { PropOptions } from './componentProps'
-import { UnwrapSlotsType } from './componentSlots'
+import type { UnwrapSlotsType } from './componentSlots'
 
 export type PublicProps = VNodeProps &
   AllowedComponentProps &
@@ -52,13 +52,15 @@ export declare function defineComponent<
   Methods = {},
   SetupReturns = {},
   // Resolving...
-  Props = (TypeProps extends unknown
-    ? ResolvePropsOption<PropsOption, PropKeys>
-    : TypeProps) &
-    PublicProps,
   Emit = TypeEmits extends unknown
     ? ResolveEmitsOption<EmitsOption, EventNames>
     : TypeEmits,
+  EmitEvents = NormalizeEmits<Emit>,
+  Props = (TypeProps extends unknown
+    ? ResolvePropsOption<PropsOption, PropKeys>
+    : TypeProps) & {
+    [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?: EmitEvents[K]
+  } & PublicProps,
   SetupContext = {
     attrs: Data
     slots: UnwrapSlotsType<Slots>
@@ -262,6 +264,33 @@ export declare function defineComponent<
 ): ComponentInternalOptions & {
   new (): _InstanceType
 }
+
+//#region NormalizeEmits
+type NormalizeEmits<T> = UnionToIntersection<
+  ConstructorOverloads<T> & {
+    [K in keyof T]: T[K] extends any[] ? { (...args: T[K]): void } : never
+  }
+>
+type OverloadUnionInner<T, U = unknown> = U & T extends (
+  ...args: infer A
+) => infer R
+  ? U extends T
+    ? never
+    :
+        | OverloadUnionInner<T, Pick<T, keyof T> & U & ((...args: A) => R)>
+        | ((...args: A) => R)
+  : never
+type OverloadUnion<T> = Exclude<
+  OverloadUnionInner<(() => never) & T>,
+  T extends () => never ? never : () => never
+>
+type ConstructorOverloads<T> =
+  OverloadUnion<T> extends infer F
+    ? F extends (event: infer E, ...args: infer A) => any
+      ? { [K in E & string]: (...args: A) => void }
+      : never
+    : never
+//#endregion
 
 //#region mixins
 type ResolveMixins<Mixins> = Mixins extends new (...args: any) => any

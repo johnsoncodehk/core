@@ -19,7 +19,6 @@ import type {
   FunctionalComponent,
 } from './component'
 import type { EmitsOptions } from './componentEmits'
-import type { DefineComponent } from './apiDefineComponent'
 
 // `h` is a more user-friendly version of `createVNode` that allows omitting the
 // props when possible. It is intended for manually written render functions.
@@ -179,14 +178,6 @@ export function h<P>(
 export function h(type: Constructor, children?: RawChildren): VNode
 export function h<P>(
   type: Constructor<P>,
-  props?: (RawProps & P) | ({} extends P ? null : never),
-  children?: RawChildren | RawSlots,
-): VNode
-
-// fake constructor type returned by `defineComponent`
-export function h(type: DefineComponent, children?: RawChildren): VNode
-export function h<P>(
-  type: DefineComponent<P>,
   props?: (RawProps & P) | ({} extends P ? null : never),
   children?: RawChildren | RawSlots,
 ): VNode
