@@ -34,14 +34,14 @@ export type PublicProps = VNodeProps &
   ComponentCustomProps
 
 export declare function defineComponent<
-  Components extends Record<string, Component> = {},
-  Directives extends Record<string, Directive> = {},
-  Slots extends SlotsType = {},
-  Exposed extends string = string,
   TypeProps = undefined,
   TypeEmits = undefined,
   TypeEl = any,
   TypeRefs = {},
+  Components extends Record<string, Component> = {},
+  Directives extends Record<string, Directive> = {},
+  Slots extends SlotsType = {},
+  Exposed extends string = string,
   Mixin = {},
   Data = {},
   PropsOption = Record<string, PropOptions>,
@@ -213,7 +213,7 @@ export declare function defineComponent<
         // __defaults?: Defaults
         //#endregion
 
-        //#region Language Tools
+        //#region LanguageToolsOptions
         /**
          * @private for language-tools use only
          */
@@ -232,7 +232,7 @@ export declare function defineComponent<
         __typeEl?: TypeEl
         //#endregion
 
-        //#region Legacy Options
+        //#region LegacyOptions
         [key: string]: unknown
         compatConfig?: CompatConfig
         data?: () => Data
