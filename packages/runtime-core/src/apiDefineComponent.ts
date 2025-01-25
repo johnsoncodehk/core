@@ -59,7 +59,9 @@ export declare function defineComponent<
     : TypeEmits,
   EmitEvents = NormalizeEmits<Emit>,
   EmitEventProps = {
-    [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?: EmitEvents[K]
+    [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?:
+      | EmitEvents[K]
+      | EmitEvents[K][]
   },
   InternalProps = (TypeProps extends undefined
     ? PropsOption extends string[]
