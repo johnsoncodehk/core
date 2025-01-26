@@ -7,6 +7,7 @@ import type {
 import type {
   AllowedComponentProps,
   Component,
+  ComponentCustomProperties,
   ComponentCustomProps,
   ComponentInjectOptions,
   ComponentInternalInstance,
@@ -44,7 +45,7 @@ export declare function defineComponent<
   Exposed extends string = string,
   Mixin = {},
   Data = {},
-  PropsOption extends Record<string, Prop<unknown>> = {},
+  PropsOption extends Record<string, Prop<unknown> | null> = {},
   EmitsOption = {},
   InjectOption extends ComponentInjectOptions = {},
   PropKeys extends string = string,
@@ -57,7 +58,9 @@ export declare function defineComponent<
   Emit = TypeEmits extends undefined
     ? ResolveEmitsOption<EmitsOption, EventNames>
     : TypeEmits,
-  EmitEvents = NormalizeEmits<Emit>,
+  EmitEvents = TypeEmits extends undefined
+    ? EmitsOption /* TODO: convert return type to void */
+    : NormalizeEmits<TypeEmits>,
   EmitEventProps = {
     [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?:
       | EmitEvents[K]
@@ -91,12 +94,12 @@ export declare function defineComponent<
   _InstanceType = Data &
     InternalProps &
     Methods &
+    ComponentCustomProperties &
     ShallowUnwrapRef<SetupReturns> & {
       [K in keyof ComputedOptions]: ReturnType<ComputedOptions[K]>
     } & {
       $: ComponentInternalInstance
       $data: Data
-      $props: ExternalProps
       $attrs: Data
       $refs: Data & TypeRefs
       $slots: UnwrapSlotsType<Slots>
@@ -105,7 +108,7 @@ export declare function defineComponent<
       $host: Element | null
       $emit: Emit
       $el: TypeEl
-      // $options: Options & MergedComponentOptionsOverride
+      $options: any // Options & MergedComponentOptionsOverride
       $forceUpdate: () => void
       $nextTick: typeof nextTick
       $watch<T extends string | ((...args: any) => any)>(
@@ -282,10 +285,10 @@ export declare function defineComponent<
          */
         __differentiator?: keyof Data | keyof ComputedOptions | keyof Methods
         //#endregion
-      } & ThisType<_InstanceType>)
+      } & ThisType<_InstanceType & { $props: InternalProps }>)
     | ((this: void, props: InternalProps, ctx: SetupContext) => SetupReturns),
 ): ComponentInternalOptions & {
-  new (): _InstanceType
+  new (): _InstanceType & { $props: ExternalProps }
 }
 
 //#region NormalizeEmits
