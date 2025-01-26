@@ -51,8 +51,8 @@ export declare function defineComponent<
   >,
   EmitsOption extends Record<string, ((...args: any) => any) | null> = {},
   InjectOption extends ComponentInjectOptions = {},
-  PropKeys extends string | unknown = unknown,
-  EventNames extends string | unknown = unknown,
+  PropKeys extends string = string,
+  EventNames extends string = string,
   InjectKeys extends string = string,
   ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
   Methods = {},
@@ -74,19 +74,19 @@ export declare function defineComponent<
       | EmitEvents[K][]
   },
   InternalProps = (TypeProps extends unknown
-    ? PropKeys extends string
-      ? {
+    ? string extends PropKeys
+      ? ExtractPropTypes<PropsOption>
+      : {
           [K in PropKeys]?: any
         }
-      : ExtractPropTypes<PropsOption>
     : TypeProps) &
     EmitEventProps,
   ExternalProps = (TypeProps extends unknown
-    ? PropKeys extends string
-      ? {
+    ? string extends PropKeys
+      ? ExtractPublicPropTypes<PropsOption>
+      : {
           [K in PropKeys]?: any
         }
-      : ExtractPublicPropTypes<PropsOption>
     : TypeProps) &
     EmitEventProps &
     PublicProps,
@@ -334,10 +334,9 @@ type ResolveMixins<Mixins> = Mixins extends new (...args: any) => any
 //#region emits
 type ResolveEmitsOption<
   EmitsOption,
-  EventNames extends string | unknown,
-> = EventNames extends string
-  ? (event: EventNames, ...args: any) => void
-  : keyof EmitsOption extends never
+  EventNames extends string,
+> = string extends EventNames
+  ? keyof EmitsOption extends never
     ? (event: string, ...args: any) => void
     : UnionToIntersection<
         {
@@ -349,4 +348,5 @@ type ResolveEmitsOption<
           ) => void
         }[keyof EmitsOption]
       >
+  : (event: EventNames, ...args: any) => void
 //#endregion
