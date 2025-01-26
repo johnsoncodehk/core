@@ -70,8 +70,7 @@ export declare function defineComponent<
         }
       : ExtractPropTypes<PropsOption>
     : TypeProps) &
-    EmitEventProps &
-    PublicProps,
+    EmitEventProps,
   ExternalProps = (TypeProps extends undefined
     ? PropsOption extends string[]
       ? {
