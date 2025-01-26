@@ -45,7 +45,10 @@ export declare function defineComponent<
   Exposed extends string = string,
   Mixin = {},
   Data = {},
-  PropsOption extends Record<string, Prop<unknown> | null> = {},
+  PropsOption extends Record<string, Prop<unknown> | null> = Record<
+    string,
+    Prop<unknown> | null
+  >,
   EmitsOption = {},
   InjectOption extends ComponentInjectOptions = {},
   PropKeys extends string | unknown = unknown,
