@@ -23,7 +23,7 @@ import type {
   WatchOptions,
   nextTick,
 } from '@vue/runtime-core'
-import type { UnionToIntersection } from '@vue/shared'
+import type { LooseRequired, UnionToIntersection } from '@vue/shared'
 import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
 import type { CompatConfig } from './compat/compatConfig'
 import type { ComponentInternalOptions } from './component'
@@ -107,7 +107,7 @@ export declare function defineComponent<
     } & {
       $: ComponentInternalInstance
       $data: Data
-      $attrs: Data
+      $attrs: Data // TODO: fixme
       $refs: Data & TypeRefs
       $slots: UnwrapSlotsType<Slots>
       $root: ComponentPublicInstance | null
@@ -134,7 +134,7 @@ export declare function defineComponent<
         //#region ComponentOptionsBase
         setup?(
           this: void,
-          props: InternalProps,
+          props: LooseRequired<InternalProps>,
           ctx: SetupContext,
         ): SetupReturns
         name?: string
