@@ -30,33 +30,53 @@ import type { ComponentInternalOptions } from './component'
 import type { ComponentWatchOptions } from './componentOptions'
 import type { UnwrapSlotsType } from './componentSlots'
 
-export type PublicProps = VNodeProps &
-  AllowedComponentProps &
-  ComponentCustomProps
+export type DefineComponent<
+  TypeProps,
+  TypeEmits,
+  TypeEl,
+  TypeRefs,
+  Slots extends SlotsType,
+  Mixin,
+  Data,
+  PropsOption extends Record<string, Prop<unknown> | null>,
+  EmitsOption extends Record<string, ((...args: any) => any) | null>,
+  PropKeys extends string,
+  EventNames extends string,
+  ComputedOptions extends Record<string, ComputedGetter<unknown>>,
+  Methods,
+  SetupReturns,
+> = _DefineComponent<
+  TypeProps,
+  TypeEmits,
+  TypeEl,
+  TypeRefs,
+  Slots,
+  Mixin,
+  Data,
+  PropsOption,
+  EmitsOption,
+  PropKeys,
+  EventNames,
+  ComputedOptions,
+  Methods,
+  SetupReturns
+>
 
-export declare function defineComponent<
-  TypeProps = unknown,
-  TypeEmits = unknown,
-  TypeEl = any,
-  TypeRefs = {},
-  Components extends Record<string, Component> = {},
-  Directives extends Record<string, Directive> = {},
-  Slots extends SlotsType = {},
-  Exposed extends string = string,
-  Mixin = {},
-  Data = {},
-  PropsOption extends Record<string, Prop<unknown> | null> = Record<
-    string,
-    Prop<unknown> | null
-  >,
-  EmitsOption extends Record<string, ((...args: any) => any) | null> = {},
-  InjectOption extends ComponentInjectOptions = {},
-  PropKeys extends string = string,
-  EventNames extends string = string,
-  InjectKeys extends string = string,
-  ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
-  Methods = {},
-  SetupReturns = {},
+export type _DefineComponent<
+  TypeProps,
+  TypeEmits,
+  TypeEl,
+  TypeRefs,
+  Slots extends SlotsType,
+  Mixin,
+  Data,
+  PropsOption extends Record<string, Prop<unknown> | null>,
+  EmitsOption extends Record<string, ((...args: any) => any) | null>,
+  PropKeys extends string,
+  EventNames extends string,
+  ComputedOptions extends Record<string, ComputedGetter<unknown>>,
+  Methods,
+  SetupReturns,
   // Resolving...
   Emit = TypeEmits extends unknown
     ? ResolveEmitsOption<EmitsOption, EventNames>
@@ -81,23 +101,6 @@ export declare function defineComponent<
         }
     : TypeProps) &
     EmitEventProps,
-  ExternalProps = (TypeProps extends unknown
-    ? string extends PropKeys
-      ? ExtractPublicPropTypes<PropsOption>
-      : {
-          [K in PropKeys]?: any
-        }
-    : TypeProps) &
-    EmitEventProps &
-    PublicProps,
-  SetupContext = {
-    attrs: Data
-    slots: UnwrapSlotsType<Slots>
-    emit: Emit
-    expose: <Exposed extends Record<string, any> = Record<string, any>>(
-      exposed?: Exposed,
-    ) => void
-  },
   _InstanceType = Data &
     InternalProps &
     Methods &
@@ -126,6 +129,105 @@ export declare function defineComponent<
         options?: WatchOptions,
       ): WatchStopHandle
     } & ResolveMixins<UnionToIntersection<Mixin>>,
+> = ComponentInternalOptions & {
+  new (): _InstanceType & {
+    $props: (TypeProps extends unknown
+      ? string extends PropKeys
+        ? ExtractPublicPropTypes<PropsOption>
+        : {
+            [K in PropKeys]?: any
+          }
+      : TypeProps) &
+      EmitEventProps &
+      PublicProps
+  }
+}
+
+export type PublicProps = VNodeProps &
+  AllowedComponentProps &
+  ComponentCustomProps
+
+export declare function defineComponent<
+  TypeProps = unknown,
+  TypeEmits = unknown,
+  TypeEl = any,
+  TypeRefs = {},
+  Slots extends SlotsType = {},
+  Mixin = {},
+  Data = {},
+  PropsOption extends Record<string, Prop<unknown> | null> = {},
+  EmitsOption extends Record<string, ((...args: any) => any) | null> = {},
+  PropKeys extends string = string,
+  EventNames extends string = string,
+  ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
+  Methods = {},
+  SetupReturns = {},
+  // Resolving...
+  Emit = TypeEmits extends unknown
+    ? ResolveEmitsOption<EmitsOption, EventNames>
+    : TypeEmits,
+  EmitEvents = TypeEmits extends unknown
+    ? {
+        [K in keyof EmitsOption]: EmitsOption[K] extends (...args: any) => any
+          ? (...args: Parameters<EmitsOption[K]>) => void
+          : (...args: any) => void
+      }
+    : NormalizeEmits<TypeEmits>,
+  EmitEventProps = {
+    [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?:
+      | EmitEvents[K]
+      | EmitEvents[K][]
+  },
+  InternalProps = (TypeProps extends unknown
+    ? string extends PropKeys
+      ? ExtractPropTypes<PropsOption>
+      : {
+          [K in PropKeys]?: any
+        }
+    : TypeProps) &
+    EmitEventProps,
+  _InstanceType = Data &
+    InternalProps &
+    Methods &
+    ComponentCustomProperties &
+    ShallowUnwrapRef<SetupReturns> & {
+      [K in keyof ComputedOptions]: ReturnType<ComputedOptions[K]>
+    } & {
+      $: ComponentInternalInstance
+      $data: Data
+      $attrs: Data // TODO: fixme
+      $refs: Data & TypeRefs
+      $slots: UnwrapSlotsType<Slots>
+      $root: ComponentPublicInstance | null
+      $parent: ComponentPublicInstance | null
+      $host: Element | null
+      $emit: Emit
+      $el: TypeEl
+      $options: any // Options & MergedComponentOptionsOverride
+      $forceUpdate: () => void
+      $nextTick: typeof nextTick
+      $watch<T extends string | ((...args: any) => any)>(
+        source: T,
+        cb: T extends (...args: any) => infer R
+          ? (...args: [R, R, OnCleanup]) => any
+          : (...args: [any, any, OnCleanup]) => any,
+        options?: WatchOptions,
+      ): WatchStopHandle
+    } & ResolveMixins<UnionToIntersection<Mixin>>,
+  // Internal
+  Components extends Record<string, Component> = {},
+  Directives extends Record<string, Directive> = {},
+  Exposed extends string = string,
+  InjectOption extends ComponentInjectOptions = {},
+  InjectKeys extends string = string,
+  SetupContext = {
+    attrs: Data
+    slots: UnwrapSlotsType<Slots>
+    emit: Emit
+    expose: <Exposed extends Record<string, any> = Record<string, any>>(
+      exposed?: Exposed,
+    ) => void
+  },
 >(
   _:
     | ({
@@ -294,9 +396,22 @@ export declare function defineComponent<
         //#endregion
       } & ThisType<_InstanceType & { $props: InternalProps }>)
     | ((this: void, props: InternalProps, ctx: SetupContext) => SetupReturns),
-): ComponentInternalOptions & {
-  new (): _InstanceType & { $props: ExternalProps }
-}
+): DefineComponent<
+  TypeProps,
+  TypeEmits,
+  TypeEl,
+  TypeRefs,
+  Slots,
+  Mixin,
+  Data,
+  PropsOption,
+  EmitsOption,
+  PropKeys,
+  EventNames,
+  ComputedOptions,
+  Methods,
+  SetupReturns
+>
 
 //#region NormalizeEmits
 type NormalizeEmits<T> = UnionToIntersection<
