@@ -49,7 +49,7 @@ export declare function defineComponent<
     string,
     Prop<unknown> | null
   >,
-  EmitsOption = {},
+  EmitsOption extends Record<string, ((...args: any) => any) | null> = {},
   InjectOption extends ComponentInjectOptions = {},
   PropKeys extends string | unknown = unknown,
   EventNames extends string | unknown = unknown,
@@ -62,7 +62,11 @@ export declare function defineComponent<
     ? ResolveEmitsOption<EmitsOption, EventNames>
     : TypeEmits,
   EmitEvents = TypeEmits extends unknown
-    ? EmitsOption /* TODO: convert return type to void */
+    ? {
+        [K in keyof EmitsOption]: EmitsOption[K] extends (...args: any) => any
+          ? (...args: Parameters<EmitsOption[K]>) => void
+          : (...args: any) => void
+      }
     : NormalizeEmits<TypeEmits>,
   EmitEventProps = {
     [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?:
