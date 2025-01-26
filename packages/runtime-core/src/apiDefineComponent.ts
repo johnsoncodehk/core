@@ -35,8 +35,8 @@ export type PublicProps = VNodeProps &
   ComponentCustomProps
 
 export declare function defineComponent<
-  TypeProps = undefined,
-  TypeEmits = undefined,
+  TypeProps = unknown,
+  TypeEmits = unknown,
   TypeEl = any,
   TypeRefs = {},
   Components extends Record<string, Component> = {},
@@ -48,17 +48,17 @@ export declare function defineComponent<
   PropsOption extends Record<string, Prop<unknown> | null> = {},
   EmitsOption = {},
   InjectOption extends ComponentInjectOptions = {},
-  PropKeys extends string | undefined = undefined,
-  EventNames extends string | undefined = undefined,
+  PropKeys extends string | unknown = unknown,
+  EventNames extends string | unknown = unknown,
   InjectKeys extends string = string,
   ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
   Methods = {},
   SetupReturns = {},
   // Resolving...
-  Emit = TypeEmits extends undefined
+  Emit = TypeEmits extends unknown
     ? ResolveEmitsOption<EmitsOption, EventNames>
     : TypeEmits,
-  EmitEvents = TypeEmits extends undefined
+  EmitEvents = TypeEmits extends unknown
     ? EmitsOption /* TODO: convert return type to void */
     : NormalizeEmits<TypeEmits>,
   EmitEventProps = {
@@ -66,7 +66,7 @@ export declare function defineComponent<
       | EmitEvents[K]
       | EmitEvents[K][]
   },
-  InternalProps = (TypeProps extends undefined
+  InternalProps = (TypeProps extends unknown
     ? PropKeys extends string
       ? {
           [K in PropKeys]?: any
@@ -74,7 +74,7 @@ export declare function defineComponent<
       : ExtractPropTypes<PropsOption>
     : TypeProps) &
     EmitEventProps,
-  ExternalProps = (TypeProps extends undefined
+  ExternalProps = (TypeProps extends unknown
     ? PropKeys extends string
       ? {
           [K in PropKeys]?: any
@@ -327,7 +327,7 @@ type ResolveMixins<Mixins> = Mixins extends new (...args: any) => any
 //#region emits
 type ResolveEmitsOption<
   EmitsOption,
-  EventNames extends string | undefined,
+  EventNames extends string | unknown,
 > = EventNames extends string
   ? (event: EventNames, ...args: any) => void
   : keyof EmitsOption extends never
