@@ -15,6 +15,7 @@ import type {
   Directive,
   ExtractPropTypes,
   ExtractPublicPropTypes,
+  Prop,
   RuntimeCompilerOptions,
   SlotsType,
   VNodeProps,
@@ -26,7 +27,6 @@ import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
 import type { CompatConfig } from './compat/compatConfig'
 import type { ComponentInternalOptions } from './component'
 import type { ComponentWatchOptions } from './componentOptions'
-import type { PropOptions } from './componentProps'
 import type { UnwrapSlotsType } from './componentSlots'
 
 export type PublicProps = VNodeProps &
@@ -44,7 +44,7 @@ export declare function defineComponent<
   Exposed extends string = string,
   Mixin = {},
   Data = {},
-  PropsOption = Record<string, PropOptions>,
+  PropsOption extends Record<string, Prop<unknown>> = {},
   EmitsOption = {},
   InjectOption extends ComponentInjectOptions = {},
   PropKeys extends string = string,
