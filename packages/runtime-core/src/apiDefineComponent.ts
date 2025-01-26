@@ -48,8 +48,8 @@ export declare function defineComponent<
   PropsOption extends Record<string, Prop<unknown> | null> = {},
   EmitsOption = {},
   InjectOption extends ComponentInjectOptions = {},
-  PropKeys extends string = string,
-  EventNames extends string = string,
+  PropKeys extends string | undefined = undefined,
+  EventNames extends string | undefined = undefined,
   InjectKeys extends string = string,
   ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
   Methods = {},
@@ -67,7 +67,7 @@ export declare function defineComponent<
       | EmitEvents[K][]
   },
   InternalProps = (TypeProps extends undefined
-    ? PropsOption extends string[]
+    ? PropKeys extends string
       ? {
           [K in PropKeys]?: any
         }
@@ -75,7 +75,7 @@ export declare function defineComponent<
     : TypeProps) &
     EmitEventProps,
   ExternalProps = (TypeProps extends undefined
-    ? PropsOption extends string[]
+    ? PropKeys extends string
       ? {
           [K in PropKeys]?: any
         }
@@ -325,7 +325,10 @@ type ResolveMixins<Mixins> = Mixins extends new (...args: any) => any
 //#endregion
 
 //#region emits
-type ResolveEmitsOption<EmitsOption, EventNames> = EmitsOption extends string[]
+type ResolveEmitsOption<
+  EmitsOption,
+  EventNames extends string | undefined,
+> = EventNames extends string
   ? (event: EventNames, ...args: any) => void
   : keyof EmitsOption extends never
     ? (event: string, ...args: any) => void
