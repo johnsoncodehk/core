@@ -267,11 +267,7 @@ export type {
   ComponentInstance,
   ComponentCustomElementInterface,
 } from './component'
-export type {
-  DefineComponent,
-  DefineSetupFnComponent,
-  PublicProps,
-} from './apiDefineComponent'
+export type { DefineComponent, PublicProps } from './apiDefineComponent'
 export type {
   ComponentOptions,
   ComponentOptionsMixin,

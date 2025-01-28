@@ -22,11 +22,17 @@ import type {
   WatchOptions,
   nextTick,
 } from '@vue/runtime-core'
-import type { LooseRequired, UnionToIntersection } from '@vue/shared'
+import {
+  extend,
+  isFunction,
+  type LooseRequired,
+  type UnionToIntersection,
+} from '@vue/shared'
 import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
 import type { CompatConfig } from './compat/compatConfig'
 import type { ComponentInternalOptions } from './component'
 import type {
+  ComponentOptions,
   ComponentWatchOptions,
   ObjectInjectOptions,
 } from './componentOptions'
@@ -149,7 +155,7 @@ export type PublicProps = VNodeProps &
   AllowedComponentProps &
   ComponentCustomProps
 
-export declare function defineComponent<
+export function defineComponent<
   PropsOption extends Record<string, Prop<unknown> | null>,
   TypeProps = unknown,
   TypeEmits = unknown,
@@ -239,7 +245,7 @@ export declare function defineComponent<
     ) => void
   },
 >(
-  _:
+  options:
     | ({
         props?: PropsOption | PropKeys[]
 
@@ -410,6 +416,7 @@ export declare function defineComponent<
         props: LooseRequired<InternalProps>,
         ctx: SetupContext,
       ) => SetupReturns),
+  extraOptions?: ComponentOptions,
 ): DefineComponent<
   TypeProps,
   TypeEmits,
@@ -425,7 +432,16 @@ export declare function defineComponent<
   ComputedOptions,
   Methods,
   SetupReturns
->
+> {
+  return (
+    isFunction(options)
+      ? // #8236: extend call and options.name access are considered side-effects
+        // by Rollup, so we have to wrap it in a pure-annotated IIFE.
+        /*@__PURE__*/ (() =>
+          extend({ name: options.name }, extraOptions, { setup: options }))()
+      : options
+  ) as any
+}
 
 //#region NormalizeEmits
 type NormalizeEmits<T> = UnionToIntersection<
