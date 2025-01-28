@@ -62,7 +62,7 @@ export type DefineComponent<
   SetupReturns
 >
 
-export type _DefineComponent<
+type _DefineComponent<
   TypeProps,
   TypeEmits,
   TypeEl,
@@ -395,7 +395,11 @@ export declare function defineComponent<
         __differentiator?: keyof Data | keyof ComputedOptions | keyof Methods
         //#endregion
       } & ThisType<_InstanceType & { $props: InternalProps }>)
-    | ((this: void, props: InternalProps, ctx: SetupContext) => SetupReturns),
+    | ((
+        this: void,
+        props: LooseRequired<InternalProps>,
+        ctx: SetupContext,
+      ) => SetupReturns),
 ): DefineComponent<
   TypeProps,
   TypeEmits,
