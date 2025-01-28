@@ -229,7 +229,7 @@ export declare function defineComponent<
           : (...args: [any, any, OnCleanup]) => any,
         options?: WatchOptions,
       ): WatchStopHandle
-    } & ResolveMixins<UnionToIntersection<Mixin>>,
+    } & UnionToIntersection<ResolveMixins<Mixin>>,
   SetupContext = {
     attrs: Data
     slots: UnwrapSlotsType<Slots>
