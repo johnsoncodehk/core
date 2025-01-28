@@ -30,7 +30,11 @@ import {
 } from '@vue/shared'
 import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
 import type { CompatConfig } from './compat/compatConfig'
-import type { ComponentInternalOptions } from './component'
+import type {
+  ComponentInternalOptions,
+  GlobalComponents,
+  GlobalDirectives,
+} from './component'
 import type {
   ComponentCustomOptions,
   ComponentOptions,
@@ -418,22 +422,25 @@ export function defineComponent<
         ctx: SetupContext,
       ) => SetupReturns),
   extraOptions?: ComponentOptions,
-): DefineComponent<
-  TypeProps,
-  TypeEmits,
-  TypeEl,
-  TypeRefs,
-  Slots,
-  Mixin,
-  Data,
-  PropsOption,
-  EmitsOption,
-  PropKeys,
-  EventNames,
-  ComputedOptions,
-  Methods,
-  SetupReturns
-> {
+): OmitFunctionType<typeof options> & {
+  directives: GlobalDirectives
+  components: GlobalComponents
+} & DefineComponent<
+    TypeProps,
+    TypeEmits,
+    TypeEl,
+    TypeRefs,
+    Slots,
+    Mixin,
+    Data,
+    PropsOption,
+    EmitsOption,
+    PropKeys,
+    EventNames,
+    ComputedOptions,
+    Methods,
+    SetupReturns
+  > {
   return (
     isFunction(options)
       ? // #8236: extend call and options.name access are considered side-effects
@@ -443,6 +450,8 @@ export function defineComponent<
       : options
   ) as any
 }
+
+type OmitFunctionType<T> = T extends (...args: any) => any ? never : T
 
 //#region NormalizeEmits
 type NormalizeEmits<T> = UnionToIntersection<
