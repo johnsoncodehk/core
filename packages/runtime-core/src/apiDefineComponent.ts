@@ -32,6 +32,7 @@ import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
 import type { CompatConfig } from './compat/compatConfig'
 import type { ComponentInternalOptions } from './component'
 import type {
+  ComponentCustomOptions,
   ComponentOptions,
   ComponentWatchOptions,
   ObjectInjectOptions,
@@ -246,7 +247,7 @@ export function defineComponent<
   },
 >(
   options:
-    | ({
+    | (ComponentCustomOptions & {
         props?: PropsOption | PropKeys[]
 
         //#region ComponentOptionsBase
