@@ -1,30 +1,4 @@
 import {
-  type Component,
-  type ComponentInternalInstance,
-  type Data,
-  getComponentPublicInstance,
-  isStatefulComponent,
-} from './component'
-import { nextTick, queueJob } from './scheduler'
-import {
-  type OnCleanup,
-  type WatchOptions,
-  type WatchStopHandle,
-  instanceWatch,
-} from './apiWatch'
-import {
-  EMPTY_OBJ,
-  type IfAny,
-  NOOP,
-  type Prettify,
-  type UnionToIntersection,
-  extend,
-  hasOwn,
-  isFunction,
-  isGloballyAllowed,
-  isString,
-} from '@vue/shared'
-import {
   ReactiveFlags,
   type ShallowUnwrapRef,
   TrackOpTypes,
@@ -33,6 +7,33 @@ import {
   toRaw,
   track,
 } from '@vue/reactivity'
+import {
+  EMPTY_OBJ,
+  type IfAny,
+  NOOP,
+  type Prettify,
+  extend,
+  hasOwn,
+  isFunction,
+  isGloballyAllowed,
+  isString,
+} from '@vue/shared'
+import type { UnionToIntersection } from './utils'
+import {
+  type OnCleanup,
+  type WatchOptions,
+  type WatchStopHandle,
+  instanceWatch,
+} from './apiWatch'
+import { installCompatInstanceProperties } from './compat/instance'
+import {
+  type Component,
+  type ComponentInternalInstance,
+  type Data,
+  getComponentPublicInstance,
+  isStatefulComponent,
+} from './component'
+import type { EmitFn, EmitsOptions } from './componentEmits'
 import {
   type ComponentInjectOptions,
   type ComponentOptionsBase,
@@ -48,13 +49,12 @@ import {
   resolveMergedOptions,
   shouldCacheAccess,
 } from './componentOptions'
-import type { EmitFn, EmitsOptions } from './componentEmits'
-import type { SlotsType, UnwrapSlotsType } from './componentSlots'
-import { markAttrsAccessed } from './componentRenderUtils'
 import { currentRenderingInstance } from './componentRenderContext'
-import { warn } from './warning'
-import { installCompatInstanceProperties } from './compat/instance'
+import { markAttrsAccessed } from './componentRenderUtils'
+import type { SlotsType, UnwrapSlotsType } from './componentSlots'
 import type { Directive } from './directives'
+import { nextTick, queueJob } from './scheduler'
+import { warn } from './warning'
 
 /**
  * Custom properties added to component instances in any way and can be accessed through `this`

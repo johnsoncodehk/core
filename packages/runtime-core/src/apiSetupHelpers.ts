@@ -1,8 +1,7 @@
+import type { Ref } from '@vue/reactivity'
 import {
   type IfAny,
-  type LooseRequired,
   type Prettify,
-  type UnionToIntersection,
   extend,
   isArray,
   isFunction,
@@ -28,9 +27,9 @@ import type {
   ExtractPropTypes,
   PropOptions,
 } from './componentProps'
-import { warn } from './warning'
 import type { SlotsType, StrictUnwrapSlotsType } from './componentSlots'
-import type { Ref } from '@vue/reactivity'
+import type { LooseRequired, UnionToIntersection } from './utils'
+import { warn } from './warning'
 
 // dev only
 const warnRuntimeUsage = (method: string) =>

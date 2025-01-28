@@ -1,7 +1,6 @@
 import {
   EMPTY_OBJ,
   type OverloadParameters,
-  type UnionToIntersection,
   camelize,
   extend,
   hasOwn,
@@ -14,24 +13,25 @@ import {
   looseToNumber,
   toHandlerKey,
 } from '@vue/shared'
+import type { UnionToIntersection } from './utils'
+import type { AppContext } from './apiCreateApp'
+import type { ComponentTypeEmits } from './apiSetupHelpers'
+import {
+  compatModelEmit,
+  compatModelEventPrefix,
+} from './compat/componentVModel'
+import { emit as compatInstanceEmit } from './compat/instanceEventEmitter'
 import {
   type ComponentInternalInstance,
   type ComponentOptions,
   type ConcreteComponent,
   formatComponentName,
 } from './component'
-import { ErrorCodes, callWithAsyncErrorHandling } from './errorHandling'
-import { warn } from './warning'
-import { devtoolsComponentEmit } from './devtools'
-import type { AppContext } from './apiCreateApp'
-import { emit as compatInstanceEmit } from './compat/instanceEventEmitter'
-import {
-  compatModelEmit,
-  compatModelEventPrefix,
-} from './compat/componentVModel'
-import type { ComponentTypeEmits } from './apiSetupHelpers'
-import { getModelModifiers } from './helpers/useModel'
 import type { ComponentPublicInstance } from './componentPublicInstance'
+import { devtoolsComponentEmit } from './devtools'
+import { ErrorCodes, callWithAsyncErrorHandling } from './errorHandling'
+import { getModelModifiers } from './helpers/useModel'
+import { warn } from './warning'
 
 export type ObjectEmitsOptions = Record<
   string,

@@ -22,14 +22,9 @@ import type {
   WatchOptions,
   nextTick,
 } from '@vue/runtime-core'
-import {
-  extend,
-  isFunction,
-  type LooseRequired,
-  type UnionToIntersection,
-} from '@vue/shared'
+import { extend, isFunction } from '@vue/shared'
+import type { LooseRequired, UnionToIntersection } from './utils'
 import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
-import type { CompatConfig } from './compat/compatConfig'
 import type {
   ComponentInternalOptions,
   GlobalComponents,
@@ -43,7 +38,7 @@ import type {
 } from './componentOptions'
 import type { UnwrapSlotsType } from './componentSlots'
 
-export type DefineComponent<
+export interface DefineComponent<
   TypeProps = unknown,
   TypeEmits = unknown,
   TypeEl = any,
@@ -58,24 +53,24 @@ export type DefineComponent<
   ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
   Methods = {},
   SetupReturns = {},
-> = _DefineComponent<
-  TypeProps,
-  TypeEmits,
-  TypeEl,
-  TypeRefs,
-  Slots,
-  Mixin,
-  Data,
-  PropsOption,
-  EmitsOption,
-  PropKeys,
-  EventNames,
-  ComputedOptions,
-  Methods,
-  SetupReturns
->
+> extends _DefineComponent<
+    TypeProps,
+    TypeEmits,
+    TypeEl,
+    TypeRefs,
+    Slots,
+    Mixin,
+    Data,
+    PropsOption,
+    EmitsOption,
+    PropKeys,
+    EventNames,
+    ComputedOptions,
+    Methods,
+    SetupReturns
+  > {}
 
-type _DefineComponent<
+interface _DefineComponent<
   TypeProps,
   TypeEmits,
   TypeEl,
@@ -123,7 +118,7 @@ type _DefineComponent<
     } & {
       $: ComponentInternalInstance
       $data: Data
-      $attrs: Data // TODO: fixme
+      $attrs: any // TODO: fixme
       $refs: Data & TypeRefs
       $slots: UnwrapSlotsType<Slots>
       $root: ComponentPublicInstance | null
@@ -141,8 +136,10 @@ type _DefineComponent<
           : (...args: [any, any, OnCleanup]) => any,
         options?: WatchOptions,
       ): WatchStopHandle
-    } & ResolveMixins<UnionToIntersection<Mixin>>,
-> = ComponentInternalOptions & {
+    } & UnionToIntersection<ResolveMixins<Mixin>>,
+> extends ComponentInternalOptions {
+  directives: GlobalDirectives
+  components: GlobalComponents
   new (): _InstanceType & {
     $props: (TypeProps extends unknown
       ? string extends PropKeys
@@ -222,7 +219,7 @@ export function defineComponent<
     } & {
       $: ComponentInternalInstance
       $data: Data
-      $attrs: Data // TODO: fixme
+      $attrs: any // TODO: fixme
       $refs: Data & TypeRefs
       $slots: UnwrapSlotsType<Slots>
       $root: ComponentPublicInstance | null
@@ -366,7 +363,7 @@ export function defineComponent<
 
         //#region LegacyOptions
         [key: string]: unknown
-        compatConfig?: CompatConfig
+        // compatConfig?: CompatConfig
         data?: () => Data
         computed?: ComputedOptions
         methods?: Methods
@@ -422,25 +419,22 @@ export function defineComponent<
         ctx: SetupContext,
       ) => SetupReturns),
   extraOptions?: ComponentOptions,
-): OmitFunctionType<typeof options> & {
-  directives: GlobalDirectives
-  components: GlobalComponents
-} & DefineComponent<
-    TypeProps,
-    TypeEmits,
-    TypeEl,
-    TypeRefs,
-    Slots,
-    Mixin,
-    Data,
-    PropsOption,
-    EmitsOption,
-    PropKeys,
-    EventNames,
-    ComputedOptions,
-    Methods,
-    SetupReturns
-  > {
+): DefineComponent<
+  TypeProps,
+  TypeEmits,
+  TypeEl,
+  TypeRefs,
+  Slots,
+  Mixin,
+  Data,
+  PropsOption,
+  EmitsOption,
+  PropKeys,
+  EventNames,
+  ComputedOptions,
+  Methods,
+  SetupReturns
+> {
   return (
     isFunction(options)
       ? // #8236: extend call and options.name access are considered side-effects
@@ -450,8 +444,6 @@ export function defineComponent<
       : options
   ) as any
 }
-
-type OmitFunctionType<T> = T extends (...args: any) => any ? never : T
 
 //#region NormalizeEmits
 type NormalizeEmits<T> = UnionToIntersection<
