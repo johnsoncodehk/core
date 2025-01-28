@@ -9,7 +9,6 @@ import type {
   Component,
   ComponentCustomProperties,
   ComponentCustomProps,
-  ComponentInjectOptions,
   ComponentInternalInstance,
   ComponentPublicInstance,
   ConcreteComponent,
@@ -27,7 +26,10 @@ import type { LooseRequired, UnionToIntersection } from '@vue/shared'
 import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
 import type { CompatConfig } from './compat/compatConfig'
 import type { ComponentInternalOptions } from './component'
-import type { ComponentWatchOptions } from './componentOptions'
+import type {
+  ComponentWatchOptions,
+  ObjectInjectOptions,
+} from './componentOptions'
 import type { UnwrapSlotsType } from './componentSlots'
 
 export type DefineComponent<
@@ -217,8 +219,8 @@ export declare function defineComponent<
   // Internal
   Components extends Record<string, Component> = {},
   Directives extends Record<string, Directive> = {},
+  InjectOption extends ObjectInjectOptions = {},
   Exposed extends string = string,
-  InjectOption extends ComponentInjectOptions = {},
   InjectKeys extends string = string,
   SetupContext = {
     attrs: Data
