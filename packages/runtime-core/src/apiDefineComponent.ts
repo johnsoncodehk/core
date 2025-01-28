@@ -164,6 +164,12 @@ export declare function defineComponent<
   ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
   Methods = {},
   SetupReturns = {},
+  // Internal
+  Components extends Record<string, Component> = {},
+  Directives extends Record<string, Directive> = {},
+  InjectOption extends ObjectInjectOptions = {},
+  Exposed extends string = string,
+  InjectKeys extends string = string,
   // Resolving...
   Emit = TypeEmits extends unknown
     ? ResolveEmitsOption<EmitsOption, EventNames>
@@ -188,8 +194,16 @@ export declare function defineComponent<
         }
     : TypeProps) &
     EmitEventProps,
+  Injection = string extends InjectKeys
+    ? {
+        [K in keyof InjectOption]?: unknown
+      }
+    : {
+        [K in InjectKeys]?: unknown
+      },
   _InstanceType = Data &
     InternalProps &
+    Injection &
     Methods &
     ComponentCustomProperties &
     ShallowUnwrapRef<SetupReturns> & {
@@ -216,12 +230,6 @@ export declare function defineComponent<
         options?: WatchOptions,
       ): WatchStopHandle
     } & ResolveMixins<UnionToIntersection<Mixin>>,
-  // Internal
-  Components extends Record<string, Component> = {},
-  Directives extends Record<string, Directive> = {},
-  InjectOption extends ObjectInjectOptions = {},
-  Exposed extends string = string,
-  InjectKeys extends string = string,
   SetupContext = {
     attrs: Data
     slots: UnwrapSlotsType<Slots>
