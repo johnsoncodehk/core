@@ -23,8 +23,8 @@ import type {
   nextTick,
 } from '@vue/runtime-core'
 import { extend, isFunction } from '@vue/shared'
-import type { LooseRequired, UnionToIntersection } from './utils'
 import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
+import { CompatConfig } from './compat/compatConfig'
 import type {
   ComponentInternalOptions,
   GlobalComponents,
@@ -37,6 +37,7 @@ import type {
   ObjectInjectOptions,
 } from './componentOptions'
 import type { UnwrapSlotsType } from './componentSlots'
+import type { LooseRequired, UnionToIntersection } from './utils'
 
 export interface DefineComponent<
   TypeProps = unknown,
@@ -363,7 +364,7 @@ export function defineComponent<
 
         //#region LegacyOptions
         [key: string]: unknown
-        // compatConfig?: CompatConfig
+        compatConfig?: CompatConfig
         data?: () => Data
         computed?: ComputedOptions
         methods?: Methods
