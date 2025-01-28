@@ -150,6 +150,7 @@ export type PublicProps = VNodeProps &
   ComponentCustomProps
 
 export declare function defineComponent<
+  PropsOption extends Record<string, Prop<unknown> | null>,
   TypeProps = unknown,
   TypeEmits = unknown,
   TypeEl = any,
@@ -157,7 +158,6 @@ export declare function defineComponent<
   Slots extends SlotsType = {},
   Mixin = {},
   Data = {},
-  PropsOption extends Record<string, Prop<unknown> | null> = {},
   EmitsOption extends Record<string, ((...args: any) => any) | null> = {},
   PropKeys extends string = string,
   EventNames extends string = string,
