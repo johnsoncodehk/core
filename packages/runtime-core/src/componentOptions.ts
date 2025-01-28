@@ -1,15 +1,13 @@
 import {
-  type Component,
-  type ComponentInternalInstance,
-  type ComponentInternalOptions,
-  type ConcreteComponent,
-  type Data,
-  type InternalRenderFunction,
-  type SetupContext,
-  currentInstance,
-} from './component'
+  type ComputedGetter,
+  type Ref,
+  type WritableComputedOptions,
+  getCurrentScope,
+  isRef,
+  reactive,
+  traverse,
+} from '@vue/reactivity'
 import {
-  type LooseRequired,
   NOOP,
   type Prettify,
   extend,
@@ -19,14 +17,8 @@ import {
   isPromise,
   isString,
 } from '@vue/shared'
-import { type Ref, getCurrentScope, isRef, traverse } from '@vue/reactivity'
 import { computed } from './apiComputed'
-import {
-  type WatchCallback,
-  type WatchOptions,
-  createPathGetter,
-  watch,
-} from './apiWatch'
+import type { OptionMergeFunction } from './apiCreateApp'
 import { inject, provide } from './apiInject'
 import {
   type DebuggerHook,
@@ -45,22 +37,44 @@ import {
   onUpdated,
 } from './apiLifecycle'
 import {
-  type ComputedGetter,
-  type WritableComputedOptions,
-  reactive,
-} from '@vue/reactivity'
+  type ComponentTypeEmits,
+  normalizePropsOrEmits,
+} from './apiSetupHelpers'
+import {
+  type WatchCallback,
+  type WatchOptions,
+  createPathGetter,
+  watch,
+} from './apiWatch'
+import {
+  type CompatConfig,
+  DeprecationTypes,
+  checkCompatEnabled,
+  isCompatEnabled,
+  softAssertCompatEnabled,
+} from './compat/compatConfig'
+import { deepMergeData } from './compat/data'
+import {
+  type Component,
+  type ComponentInternalInstance,
+  type ComponentInternalOptions,
+  type ConcreteComponent,
+  type Data,
+  type InternalRenderFunction,
+  type SetupContext,
+  currentInstance,
+} from './component'
+import type {
+  EmitsOptions,
+  EmitsToProps,
+  TypeEmitsToOptions,
+} from './componentEmits'
 import type {
   ComponentObjectPropsOptions,
   ComponentPropsOptions,
   ExtractDefaultPropTypes,
   ExtractPropTypes,
 } from './componentProps'
-import type {
-  EmitsOptions,
-  EmitsToProps,
-  TypeEmitsToOptions,
-} from './componentEmits'
-import type { Directive } from './directives'
 import {
   type ComponentPublicInstance,
   type CreateComponentPublicInstanceWithMixins,
@@ -68,24 +82,14 @@ import {
   type UnwrapMixinsType,
   isReservedPrefix,
 } from './componentPublicInstance'
-import { warn } from './warning'
-import type { VNodeChild } from './vnode'
-import { callWithAsyncErrorHandling } from './errorHandling'
-import { deepMergeData } from './compat/data'
-import { DeprecationTypes, checkCompatEnabled } from './compat/compatConfig'
-import {
-  type CompatConfig,
-  isCompatEnabled,
-  softAssertCompatEnabled,
-} from './compat/compatConfig'
-import type { OptionMergeFunction } from './apiCreateApp'
-import { LifecycleHooks } from './enums'
 import type { SlotsType } from './componentSlots'
-import {
-  type ComponentTypeEmits,
-  normalizePropsOrEmits,
-} from './apiSetupHelpers'
+import type { Directive } from './directives'
+import { LifecycleHooks } from './enums'
+import { callWithAsyncErrorHandling } from './errorHandling'
 import { markAsyncBoundary } from './helpers/useId'
+import { LooseRequired } from './utils'
+import type { VNodeChild } from './vnode'
+import { warn } from './warning'
 
 /**
  * Interface for declaring custom options.
