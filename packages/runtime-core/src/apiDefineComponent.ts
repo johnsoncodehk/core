@@ -25,11 +25,7 @@ import type {
 import { extend, isFunction } from '@vue/shared'
 import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
 import { CompatConfig } from './compat/compatConfig'
-import type {
-  ComponentInternalOptions,
-  GlobalComponents,
-  GlobalDirectives,
-} from './component'
+import type { GlobalComponents, GlobalDirectives } from './component'
 import type {
   ComponentCustomOptions,
   ComponentOptions,
@@ -39,120 +35,7 @@ import type {
 import type { UnwrapSlotsType } from './componentSlots'
 import type { LooseRequired, UnionToIntersection } from './utils'
 
-export interface DefineComponent<
-  TypeProps = unknown,
-  TypeEmits = unknown,
-  TypeEl = any,
-  TypeRefs = {},
-  Slots extends SlotsType = {},
-  Mixin = {},
-  Data = {},
-  PropsOption extends Record<string, Prop<unknown> | null> = {},
-  EmitsOption extends Record<string, ((...args: any) => any) | null> = {},
-  PropKeys extends string = string,
-  EventNames extends string = string,
-  ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
-  Methods = {},
-  SetupReturns = {},
-> extends _DefineComponent<
-    TypeProps,
-    TypeEmits,
-    TypeEl,
-    TypeRefs,
-    Slots,
-    Mixin,
-    Data,
-    PropsOption,
-    EmitsOption,
-    PropKeys,
-    EventNames,
-    ComputedOptions,
-    Methods,
-    SetupReturns
-  > {}
-
-interface _DefineComponent<
-  TypeProps,
-  TypeEmits,
-  TypeEl,
-  TypeRefs,
-  Slots extends SlotsType,
-  Mixin,
-  Data,
-  PropsOption extends Record<string, Prop<unknown> | null>,
-  EmitsOption extends Record<string, ((...args: any) => any) | null>,
-  PropKeys extends string,
-  EventNames extends string,
-  ComputedOptions extends Record<string, ComputedGetter<unknown>>,
-  Methods,
-  SetupReturns,
-  // Resolving...
-  Emit = TypeEmits extends unknown
-    ? ResolveEmitsOption<EmitsOption, EventNames>
-    : TypeEmits,
-  EmitEvents = TypeEmits extends unknown
-    ? {
-        [K in keyof EmitsOption]: EmitsOption[K] extends (...args: any) => any
-          ? (...args: Parameters<EmitsOption[K]>) => void
-          : (...args: any) => void
-      }
-    : NormalizeEmits<TypeEmits>,
-  EmitEventProps = {
-    [K in string & keyof EmitEvents as `on${Capitalize<K>}`]?:
-      | EmitEvents[K]
-      | EmitEvents[K][]
-  },
-  InternalProps = (TypeProps extends unknown
-    ? string extends PropKeys
-      ? ExtractPropTypes<PropsOption>
-      : {
-          [K in PropKeys]?: any
-        }
-    : TypeProps) &
-    EmitEventProps,
-  _InstanceType = Data &
-    InternalProps &
-    Methods &
-    ComponentCustomProperties &
-    ShallowUnwrapRef<SetupReturns> & {
-      [K in keyof ComputedOptions]: ReturnType<ComputedOptions[K]>
-    } & {
-      $: ComponentInternalInstance
-      $data: Data
-      $attrs: any // TODO: fixme
-      $refs: Data & TypeRefs
-      $slots: UnwrapSlotsType<Slots>
-      $root: ComponentPublicInstance | null
-      $parent: ComponentPublicInstance | null
-      $host: Element | null
-      $emit: Emit
-      $el: TypeEl
-      $options: any // Options & MergedComponentOptionsOverride
-      $forceUpdate: () => void
-      $nextTick: typeof nextTick
-      $watch<T extends string | ((...args: any) => any)>(
-        source: T,
-        cb: T extends (...args: any) => infer R
-          ? (...args: [R, R, OnCleanup]) => any
-          : (...args: [any, any, OnCleanup]) => any,
-        options?: WatchOptions,
-      ): WatchStopHandle
-    } & UnionToIntersection<ResolveMixins<Mixin>>,
-> extends ComponentInternalOptions {
-  directives: GlobalDirectives
-  components: GlobalComponents
-  new (): _InstanceType & {
-    $props: (TypeProps extends unknown
-      ? string extends PropKeys
-        ? ExtractPublicPropTypes<PropsOption>
-        : {
-            [K in PropKeys]?: any
-          }
-      : TypeProps) &
-      EmitEventProps &
-      PublicProps
-  }
-}
+export type DefineComponent<T1 = any, T2 = any, T3 = any, T4 = any> = any
 
 export type PublicProps = VNodeProps &
   AllowedComponentProps &
@@ -173,7 +56,6 @@ export function defineComponent<
   ComputedOptions extends Record<string, ComputedGetter<unknown>> = {},
   Methods = {},
   SetupReturns = {},
-  // Internal
   Components extends Record<string, Component> = {},
   Directives extends Record<string, Directive> = {},
   InjectOption extends ObjectInjectOptions = {},
@@ -210,35 +92,6 @@ export function defineComponent<
     : {
         [K in InjectKeys]?: unknown
       },
-  _InstanceType = Data &
-    InternalProps &
-    Injection &
-    Methods &
-    ComponentCustomProperties &
-    ShallowUnwrapRef<SetupReturns> & {
-      [K in keyof ComputedOptions]: ReturnType<ComputedOptions[K]>
-    } & {
-      $: ComponentInternalInstance
-      $data: Data
-      $attrs: any // TODO: fixme
-      $refs: Data & TypeRefs
-      $slots: UnwrapSlotsType<Slots>
-      $root: ComponentPublicInstance | null
-      $parent: ComponentPublicInstance | null
-      $host: Element | null
-      $emit: Emit
-      $el: TypeEl
-      $options: any // Options & MergedComponentOptionsOverride
-      $forceUpdate: () => void
-      $nextTick: typeof nextTick
-      $watch<T extends string | ((...args: any) => any)>(
-        source: T,
-        cb: T extends (...args: any) => infer R
-          ? (...args: [R, R, OnCleanup]) => any
-          : (...args: [any, any, OnCleanup]) => any,
-        options?: WatchOptions,
-      ): WatchStopHandle
-    } & UnionToIntersection<ResolveMixins<Mixin>>,
   SetupContext = {
     attrs: Data
     slots: UnwrapSlotsType<Slots>
@@ -413,29 +266,101 @@ export function defineComponent<
          */
         __differentiator?: keyof Data | keyof ComputedOptions | keyof Methods
         //#endregion
-      } & ThisType<_InstanceType & { $props: InternalProps }>)
+      } & ThisType<
+          Data &
+            InternalProps &
+            Methods &
+            ComponentCustomProperties &
+            Injection &
+            ShallowUnwrapRef<SetupReturns> & {
+              [K in keyof ComputedOptions]: ReturnType<ComputedOptions[K]>
+            } & {
+              $props: InternalProps & EmitEventProps
+              $: ComponentInternalInstance
+              $data: Data
+              $attrs: any // TODO: fixme
+              $refs: Data & TypeRefs
+              $slots: UnwrapSlotsType<Slots>
+              $root: ComponentPublicInstance | null
+              $parent: ComponentPublicInstance | null
+              $host: Element | null
+              $emit: Emit
+              $el: TypeEl
+              $options: any // Options & MergedComponentOptionsOverride
+              $forceUpdate: () => void
+              $nextTick: typeof nextTick
+              $watch<T extends string | ((...args: any) => any)>(
+                source: T,
+                cb: T extends (...args: any) => infer R
+                  ? (...args: [R, R, OnCleanup]) => any
+                  : (...args: [any, any, OnCleanup]) => any,
+                options?: WatchOptions,
+              ): WatchStopHandle
+            } & UnionToIntersection<ResolveMixins<Mixin>>
+        >)
     | ((
         this: void,
         props: LooseRequired<InternalProps>,
         ctx: SetupContext,
       ) => SetupReturns),
   extraOptions?: ComponentOptions,
-): DefineComponent<
-  TypeProps,
-  TypeEmits,
-  TypeEl,
-  TypeRefs,
-  Slots,
-  Mixin,
-  Data,
-  PropsOption,
-  EmitsOption,
-  PropKeys,
-  EventNames,
-  ComputedOptions,
-  Methods,
-  SetupReturns
-> {
+): {
+  directives: /* Directives & */ GlobalDirectives
+  components: /* Components & */ GlobalComponents
+
+  new <
+    T extends {
+      props: string extends PropKeys ? PropsOption : PropKeys[]
+      typeProps: TypeProps
+    },
+    InternalProps = T['typeProps'] extends unknown
+      ? string[] extends T['props']
+        ? {
+            [K in (T['props'] extends string[]
+              ? T['props']
+              : never)[number]]?: any
+          }
+        : ExtractPropTypes<T['props']>
+      : T['typeProps'],
+    ExternalProps = T['typeProps'] extends unknown
+      ? string[] extends T['props']
+        ? {
+            [K in (T['props'] extends string[]
+              ? T['props']
+              : never)[number]]?: any
+          }
+        : ExtractPublicPropTypes<T['props']>
+      : T['typeProps'],
+  >(): Data &
+    InternalProps &
+    Methods &
+    ComponentCustomProperties &
+    ShallowUnwrapRef<SetupReturns> & {
+      [K in keyof ComputedOptions]: ReturnType<ComputedOptions[K]>
+    } & {
+      $props: ExternalProps & EmitEventProps & PublicProps
+      $: ComponentInternalInstance
+      $data: Data
+      $attrs: any // TODO: fixme
+      $refs: Data & TypeRefs
+      $slots: UnwrapSlotsType<Slots>
+      $root: ComponentPublicInstance | null
+      $parent: ComponentPublicInstance | null
+      $host: Element | null
+      $emit: Emit
+      $el: TypeEl
+      $options: any // Options & MergedComponentOptionsOverride
+      $forceUpdate: () => void
+      $nextTick: typeof nextTick
+      $watch<T extends string | ((...args: any) => any)>(
+        source: T,
+        cb: T extends (...args: any) => infer R
+          ? (...args: [R, R, OnCleanup]) => any
+          : (...args: [any, any, OnCleanup]) => any,
+        options?: WatchOptions,
+      ): WatchStopHandle
+    } & UnionToIntersection<ResolveMixins<Mixin>>
+} {
   return (
     isFunction(options)
       ? // #8236: extend call and options.name access are considered side-effects
