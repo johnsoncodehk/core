@@ -24,7 +24,7 @@ import type {
 } from '@vue/runtime-core'
 import { extend, isFunction } from '@vue/shared'
 import type { DebuggerHook, ErrorCapturedHook } from './apiLifecycle'
-import { CompatConfig } from './compat/compatConfig'
+import type { CompatConfig } from './compat/compatConfig'
 import type { GlobalComponents, GlobalDirectives } from './component'
 import type {
   ComponentCustomOptions,
@@ -62,10 +62,10 @@ export function defineComponent<
   Exposed extends string = string,
   InjectKeys extends string = string,
   // Resolving...
-  Emit = TypeEmits extends unknown
+  Emit = unknown extends TypeEmits
     ? ResolveEmitsOption<EmitsOption, EventNames>
     : TypeEmits,
-  EmitEvents = TypeEmits extends unknown
+  EmitEvents = unknown extends TypeEmits
     ? {
         [K in keyof EmitsOption]: EmitsOption[K] extends (...args: any) => any
           ? (...args: Parameters<EmitsOption[K]>) => void
@@ -77,7 +77,7 @@ export function defineComponent<
       | EmitEvents[K]
       | EmitEvents[K][]
   },
-  InternalProps = (TypeProps extends unknown
+  InternalProps = (unknown extends TypeProps
     ? string extends PropKeys
       ? ExtractPropTypes<PropsOption>
       : {
@@ -313,7 +313,7 @@ export function defineComponent<
       props: string extends PropKeys ? PropsOption : PropKeys[]
       typeProps: TypeProps
     },
-    InternalProps = T['typeProps'] extends unknown
+    InternalProps = unknown extends T['typeProps']
       ? string[] extends T['props']
         ? {
             [K in (T['props'] extends string[]
@@ -322,7 +322,7 @@ export function defineComponent<
           }
         : ExtractPropTypes<T['props']>
       : T['typeProps'],
-    ExternalProps = T['typeProps'] extends unknown
+    ExternalProps = unknown extends T['typeProps']
       ? string[] extends T['props']
         ? {
             [K in (T['props'] extends string[]
