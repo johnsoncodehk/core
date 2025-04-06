@@ -92,8 +92,61 @@ export function genFor(
     flags |= VaporVForFlags.ONCE
   }
 
+  let extra: any[] = []
+
+  for (const effect of render.effect) {
+    for (const exp of effect.expressions) {
+      const ast = exp.ast
+      if (
+        typeof ast === 'object' &&
+        ast?.type === 'ConditionalExpression' &&
+        (ast.alternate.type === 'StringLiteral' ||
+          ast.alternate.type === 'NumericLiteral' ||
+          ast.alternate.type === 'BooleanLiteral' ||
+          ast.alternate.type === 'NullLiteral') &&
+        (ast.consequent.type === 'StringLiteral' ||
+          ast.consequent.type === 'NumericLiteral' ||
+          ast.consequent.type === 'BooleanLiteral' ||
+          ast.consequent.type === 'NullLiteral') &&
+        ast.test.type === 'BinaryExpression' &&
+        ast.test.operator === '==='
+      ) {
+        const left = ast.test.left
+        const right = ast.test.right
+        for (const [a, b] of [
+          [left, right],
+          [right, left],
+        ]) {
+          if (
+            ((a.type === 'MemberExpression' &&
+              a.object.type === 'Identifier' &&
+              a.object.name === value?.content) ||
+              // TODO
+              (a.type === 'Identifier' && a.name === 'row_id')) &&
+            b.type === 'Identifier'
+          ) {
+            const consequentValue =
+              'value' in ast.consequent
+                ? JSON.stringify(ast.consequent.value)
+                : null
+            const alternateValue =
+              'value' in ast.alternate
+                ? JSON.stringify(ast.alternate.value)
+                : null
+            extra.push(
+              `const selector = useSelectorPattern(() => ${b.name}, setXxx, ${consequentValue}, ${alternateValue})`,
+              NEWLINE,
+            )
+            break
+          }
+        }
+      }
+    }
+  }
+
   return [
     NEWLINE,
+    ...extra,
     `const n${id} = `,
     ...genCall(
       helper('createFor'),
