@@ -73,7 +73,13 @@ export class ReactiveEffect<T = any> implements ReactiveEffectOptions {
   onTrack?: (event: DebuggerEvent) => void
   onTrigger?: (event: DebuggerEvent) => void
 
-  constructor(public fn: () => T) {
+  // @ts-expect-error
+  callback(): T {}
+
+  constructor(fn?: () => T) {
+    if (fn !== undefined) {
+      this.callback = fn
+    }
     if (activeEffectScope && activeEffectScope.active) {
       link(this, activeEffectScope)
     }
@@ -120,7 +126,7 @@ export class ReactiveEffect<T = any> implements ReactiveEffectOptions {
 
     if (!this.active) {
       // stopped during cleanup
-      return this.fn()
+      return this.callback()
     }
     cleanupEffect(this)
     const prevSub = activeSub
@@ -128,7 +134,7 @@ export class ReactiveEffect<T = any> implements ReactiveEffectOptions {
     startTracking(this)
 
     try {
-      return this.fn()
+      return this.callback()
     } finally {
       if (__DEV__ && activeSub !== this) {
         warn(
@@ -191,7 +197,7 @@ export function effect<T = any>(
   options?: ReactiveEffectOptions,
 ): ReactiveEffectRunner<T> {
   if ((fn as ReactiveEffectRunner).effect instanceof ReactiveEffect) {
-    fn = (fn as ReactiveEffectRunner).effect.fn
+    fn = (fn as ReactiveEffectRunner).effect.callback
   }
 
   const e = new ReactiveEffect(fn)
