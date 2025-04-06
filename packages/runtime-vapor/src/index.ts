@@ -7,7 +7,14 @@ export type { VaporDirective } from './directives/custom'
 // compiler-use only
 export { insert, prepend, remove, isFragment, VaporFragment } from './block'
 export { setInsertionState } from './insertionState'
-export { createComponent, createComponentWithFallback } from './component'
+export {
+  createComponent,
+  createComponentWithFallback,
+  /**
+   * @internal
+   */
+  VaporComponentInstance,
+} from './component'
 export { renderEffect } from './renderEffect'
 export { createSlot } from './componentSlots'
 export { template } from './dom/template'
@@ -42,3 +49,8 @@ export {
   applyDynamicModel,
 } from './directives/vModel'
 export { withVaporDirectives } from './directives/custom'
+
+/**
+ * @internal
+ */
+export { simpleSetCurrentInstance } from '@vue/runtime-core'
