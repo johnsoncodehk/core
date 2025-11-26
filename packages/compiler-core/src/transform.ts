@@ -495,7 +495,13 @@ export function createStructuralDirectiveTransform(
       const { props } = node
       // structural directive transforms are not concerned with slots
       // as they are handled separately in vSlot.ts
-      if (node.tagType === ElementTypes.TEMPLATE && props.some(isVSlot)) {
+      // v-for is an exception: it should still create a FOR node even
+      // when combined with v-slot, to ensure the AST structure is correct
+      if (
+        node.tagType === ElementTypes.TEMPLATE &&
+        props.some(isVSlot) &&
+        !matches('for')
+      ) {
         return
       }
       const exitFns = []
