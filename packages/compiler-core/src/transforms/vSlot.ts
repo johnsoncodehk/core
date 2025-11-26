@@ -207,6 +207,8 @@ export function buildSlots(
         hasDynamicSlots = true
       }
 
+      // Pass undefined for vFor param as the v-for context is already handled
+      // by the FOR node - the slot function doesn't need the directive
       const slotFunction = buildSlotFn(
         slotProps,
         undefined,
@@ -214,6 +216,7 @@ export function buildSlots(
         slotLoc,
       )
 
+      // v-for slots are always dynamic
       hasDynamicSlots = true
       // Use the parseResult from the FOR node
       dynamicSlots.push(
