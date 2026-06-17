@@ -5,6 +5,7 @@ import {
   type ElementNode,
   ElementTypes,
   type ExpressionNode,
+  type ForNode,
   type FunctionExpression,
   NodeTypes,
   type ObjectExpression,
@@ -173,6 +174,63 @@ export function buildSlots(
   for (let i = 0; i < children.length; i++) {
     const slotElement = children[i]
     let slotDir
+
+    // Handle FOR node containing a template with v-slot
+    // This happens when <template v-for v-slot> is used
+    if (
+      slotElement.type === NodeTypes.FOR &&
+      slotElement.children.length === 1 &&
+      isTemplateNode(slotElement.children[0]) &&
+      (slotDir = findDir(slotElement.children[0], 'slot', true))
+    ) {
+      if (onComponentSlot) {
+        context.onError(
+          createCompilerError(
+            ErrorCodes.X_V_SLOT_MIXED_SLOT_USAGE,
+            slotDir.loc,
+          ),
+        )
+        break
+      }
+
+      hasTemplateSlots = true
+      const forNode = slotElement as ForNode
+      const innerSlotElement = forNode.children[0] as ElementNode
+      const { children: slotChildren, loc: slotLoc } = innerSlotElement
+      const {
+        arg: slotName = createSimpleExpression(`default`, true),
+        exp: slotProps,
+      } = slotDir
+
+      // check if name is dynamic.
+      if (!isStaticExp(slotName)) {
+        hasDynamicSlots = true
+      }
+
+      // Pass undefined for vFor param as the v-for context is already handled
+      // by the FOR node - the slot function doesn't need the directive
+      const slotFunction = buildSlotFn(
+        slotProps,
+        undefined,
+        slotChildren,
+        slotLoc,
+      )
+
+      // v-for slots are always dynamic
+      hasDynamicSlots = true
+      // Use the parseResult from the FOR node
+      dynamicSlots.push(
+        createCallExpression(context.helper(RENDER_LIST), [
+          forNode.source,
+          createFunctionExpression(
+            createForLoopParams(forNode.parseResult),
+            buildDynamicSlot(slotName, slotFunction),
+            true /* force newline */,
+          ),
+        ]),
+      )
+      continue
+    }
 
     if (
       !isTemplateNode(slotElement) ||

@@ -38,6 +38,7 @@ import {
   injectProp,
   isSlotOutlet,
   isTemplateNode,
+  isVSlot,
 } from '../utils'
 import {
   FRAGMENT,
@@ -54,6 +55,14 @@ export const transformFor: NodeTransform = createStructuralDirectiveTransform(
   (node, dir, context) => {
     const { helper, removeHelper } = context
     return processFor(node, dir, context, forNode => {
+      // When <template v-for v-slot> is used, skip codegen here since
+      // it will be handled by buildSlots in vSlot.ts
+      // The AST structure is still correct (FOR node with template child)
+      const hasVSlot = isTemplateNode(node) && node.props.some(isVSlot)
+      if (hasVSlot) {
+        return
+      }
+
       // create the loop render function expression now, and add the
       // iterator on exit after all children have been traversed
       const renderExp = createCallExpression(helper(RENDER_LIST), [
@@ -280,6 +289,10 @@ export function processFor(
   const { addIdentifiers, removeIdentifiers, scopes } = context
   const { source, value, key, index } = parseResult
 
+  // When <template v-for v-slot> is used, keep the template element
+  // (with v-slot) as the child, so that buildSlots can find and process it
+  const hasVSlot = isTemplateNode(node) && node.props.some(isVSlot)
+
   const forNode: ForNode = {
     type: NodeTypes.FOR,
     loc: dir.loc,
@@ -288,7 +301,7 @@ export function processFor(
     keyAlias: key,
     objectIndexAlias: index,
     parseResult,
-    children: isTemplateNode(node) ? node.children : [node],
+    children: isTemplateNode(node) && !hasVSlot ? node.children : [node],
   }
 
   context.replaceNode(forNode)
