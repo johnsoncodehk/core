@@ -194,14 +194,12 @@ test('source map: inMap not encoded by Vue', () => {
     filename: 'example.vue',
     sourceMap: true,
   }).descriptor.template!
+  const options = { filename: 'example.vue', source: template.content }
 
-  expect(() =>
-    compile({
-      filename: 'example.vue',
-      source: template.content,
-      inMap: JSON.parse(JSON.stringify(template.map)),
-    }),
-  ).toThrow('The source map was not encoded by Vue')
+  expect(
+    compile({ ...options, inMap: JSON.parse(JSON.stringify(template.map)) })
+      .map,
+  ).toEqual(compile({ ...options, inMap: template.map }).map)
 })
 
 test('source map: v-if generated comment should not have original position', () => {

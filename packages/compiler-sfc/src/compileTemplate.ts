@@ -8,7 +8,11 @@ import type {
   RootNode,
 } from '@vue/compiler-core'
 import { decodedMappings } from '@vue/compiler-core'
-import { type SourceMapSegment, encodeMappings } from 'muggle-string'
+import {
+  type SourceMapSegment,
+  decodeMappings,
+  encodeMappings,
+} from 'muggle-string'
 import {
   type AssetURLOptions,
   type AssetURLTagConfig,
@@ -328,14 +332,7 @@ function mapLines(oldMap: RawSourceMap, newMap: RawSourceMap): RawSourceMap {
 }
 
 export function getDecodedMappings(map: RawSourceMap): SourceMapSegment[][] {
-  const mappings = decodedMappings.get(map)
-  if (!mappings) {
-    throw new Error(
-      `[@vue/compiler-sfc] The source map was not encoded by Vue. Vue reads ` +
-        `the segments of the source maps it encodes and does not decode mappings.`,
-    )
-  }
-  return mappings
+  return decodedMappings.get(map) || decodeMappings(map.mappings)
 }
 
 function patchErrors(

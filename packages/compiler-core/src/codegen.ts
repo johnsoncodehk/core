@@ -72,9 +72,8 @@ export interface RawSourceMap {
 }
 
 /**
- * The segments of each source map Vue encodes, keyed by the map object. Vue
- * reads the segments of a map only from here and never decodes mappings, so it
- * only accepts the maps it encoded itself.
+ * The segments of each source map Vue encodes, keyed by the map object, so
+ * that only the mappings of maps from elsewhere need decoding.
  */
 export const decodedMappings: WeakMap<RawSourceMap, SourceMapSegment[][]> =
   new WeakMap()
