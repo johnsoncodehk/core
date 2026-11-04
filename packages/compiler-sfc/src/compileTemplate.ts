@@ -8,10 +8,18 @@ import type {
   RootNode,
 } from '@vue/compiler-core'
 import {
+  getDecodedMappings as getCoreDecodedMappings,
+  setDecodedMappings as setCoreDecodedMappings,
+} from '@vue/compiler-core'
+import {
   type SourceMapSegment,
   decodeMappings,
   encodeMappings,
 } from 'muggle-string'
+import {
+  getDecodedMappings,
+  setDecodedMappings,
+} from './sourcemap'
 import {
   type AssetURLOptions,
   type AssetURLTagConfig,
@@ -303,12 +311,16 @@ function doCompileTemplate({
 // segment with a source
 function mapLines(oldMap: RawSourceMap, newMap: RawSourceMap): RawSourceMap {
   if (!oldMap) return newMap
-  if (!newMap) return oldMap
+  if (!newMap) return newMap
 
-  const oldLines = decodeMappings(oldMap.mappings).map(segments =>
-    segments.find(s => s.length !== 1),
-  )
-  const mappings = decodeMappings(newMap.mappings).map(segments => {
+  const oldLines = (
+    getDecodedMappings(oldMap) || decodeMappings(oldMap.mappings)
+  ).map(segments => segments.find(s => s.length !== 1))
+  const mappings = (
+    getDecodedMappings(newMap) ||
+    getCoreDecodedMappings(newMap) ||
+    decodeMappings(newMap.mappings)
+  ).map(segments => {
     const mapped: SourceMapSegment[] = []
     for (const s of segments) {
       const line = s.length !== 1 && oldLines[s[2]]
@@ -326,6 +338,8 @@ function mapLines(oldMap: RawSourceMap, newMap: RawSourceMap): RawSourceMap {
   if (oldMap.file != null) map.file = oldMap.file
   if (oldMap.sourceRoot != null) map.sourceRoot = oldMap.sourceRoot
   if (oldMap.sourcesContent) map.sourcesContent = oldMap.sourcesContent
+  setDecodedMappings(map, mappings)
+  setCoreDecodedMappings(map, mappings)
   return map as unknown as RawSourceMap
 }
 

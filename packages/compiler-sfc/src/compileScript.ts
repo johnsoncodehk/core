@@ -30,6 +30,14 @@ import { walk } from 'estree-walker'
 import { decodeMappings, encodeMappings } from 'muggle-string'
 import type { DecodedSourceMap, SourceMapSegment } from './editedString'
 import {
+  getDecodedMappings as getCoreDecodedMappings,
+  setDecodedMappings as setCoreDecodedMappings,
+} from '@vue/compiler-core'
+import {
+  getDecodedMappings,
+  setDecodedMappings,
+} from './sourcemap'
+import {
   normalScriptDefaultVar,
   processNormalScript,
 } from './script/normalScript'
@@ -1600,7 +1608,13 @@ export function mergeSourceMaps(
   }
 
   add(scriptMap, scriptMap.mappings, 0)
-  add(templateMap, decodeMappings(templateMap.mappings), templateLineOffset)
+  add(
+    templateMap,
+    getDecodedMappings(templateMap) ||
+      getCoreDecodedMappings(templateMap) ||
+      decodeMappings(templateMap.mappings),
+    templateLineOffset,
+  )
   const mappings: MappedSegment[][] = []
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] || []
@@ -1623,5 +1637,7 @@ export function mergeSourceMaps(
     map.sourcesContent = sources.map(source =>
       contents.has(source) ? contents.get(source)! : (null as any),
     )
+  setDecodedMappings(map, mappings)
+  setCoreDecodedMappings(map, mappings)
   return map as unknown as RawSourceMap
 }

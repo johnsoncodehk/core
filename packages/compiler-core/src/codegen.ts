@@ -35,6 +35,7 @@ import {
   isSimpleIdentifier,
   toValidAssetId,
 } from './utils'
+import { setDecodedMappings } from './sourcemap'
 import {
   NOOP,
   PatchFlagNames,
@@ -285,13 +286,15 @@ export const createCodegenSourceMapGenerator: (
           mappings[generated.line - 1].push(segment)
         },
         toJSON() {
-          return {
+          const map = {
             version: 3,
             sources: [filename],
             names,
             mappings: encodeMappings(mappings),
             sourcesContent: [source],
           } as unknown as RawSourceMap
+          setDecodedMappings(map, mappings)
+          return map
         },
       }
     }

@@ -34,6 +34,11 @@ export {
   type BaseCodegenResult,
 } from './codegen'
 export {
+  decodedMappingsCache,
+  setDecodedMappings,
+  getDecodedMappings,
+} from './sourcemap'
+export {
   ErrorCodes,
   errorMessages,
   createCompilerError,

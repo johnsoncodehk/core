@@ -18,6 +18,7 @@ import type { ImportBinding } from './compileScript'
 import { isUsedInTemplate } from './script/importUsageCheck'
 import type { LRUCache } from 'lru-cache'
 import { genCacheKey } from '@vue/shared'
+import { setDecodedMappings } from './sourcemap'
 
 export const DEFAULT_FILENAME = 'anonymous.vue'
 
@@ -401,7 +402,7 @@ function generateSourceMap(
     }
     return segments
   })
-  return {
+  const map = {
     version: 3,
     sources: [filename],
     names: [],
@@ -410,6 +411,8 @@ function generateSourceMap(
     sourceRoot: sourceRoot.replace(/\\/g, '/'),
     sourcesContent: [source],
   } as unknown as RawSourceMap
+  setDecodedMappings(map, mappings)
+  return map
 }
 
 function padContent(
