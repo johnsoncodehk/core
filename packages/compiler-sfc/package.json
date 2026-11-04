@@ -50,8 +50,7 @@
     "@vue/shared": "workspace:*",
     "estree-walker": "catalog:",
     "muggle-string": "catalog:",
-    "postcss": "^8.5.29",
-    "source-map-js": "catalog:"
+    "postcss": "^8.5.29"
   },
   "devDependencies": {
     "@babel/types": "catalog:",
