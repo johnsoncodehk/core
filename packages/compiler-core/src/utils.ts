@@ -19,6 +19,7 @@ import {
   type RootNode,
   type SimpleExpressionNode,
   type SlotOutletNode,
+  type SourceLocation,
   type TemplateChildNode,
   type TemplateNode,
   type TextNode,
@@ -252,6 +253,15 @@ export const isFnExpression: (
   exp: ExpressionNode,
   context: Pick<TransformContext, 'expressionPlugins'>,
 ) => boolean = __BROWSER__ ? isFnExpressionBrowser : isFnExpressionNode
+
+// callers may shift positions in place, so the clone must not share them
+export function cloneLoc(loc: SourceLocation): SourceLocation {
+  return {
+    start: { ...loc.start },
+    end: { ...loc.end },
+    source: loc.source,
+  }
+}
 
 export function advancePositionWithClone(
   pos: Position,

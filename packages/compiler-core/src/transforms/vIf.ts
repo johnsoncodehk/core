@@ -30,9 +30,9 @@ import {
 import { ErrorCodes, createCompilerError } from '../errors'
 import { processExpression } from './transformExpression'
 import { validateBrowserExpression } from '../validateExpression'
-import { cloneLoc } from '../parser'
 import { CREATE_COMMENT, FRAGMENT } from '../runtimeHelpers'
 import {
+  cloneLoc,
   findDir,
   findProp,
   getMemoedVNodeCall,

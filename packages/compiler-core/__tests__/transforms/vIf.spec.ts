@@ -230,6 +230,22 @@ describe('compiler: v-if', () => {
         exp: { content: 'key' },
       })
     })
+
+    //#16091
+    test('v-if loc should not depend on the last parsed template', () => {
+      const source = `<div v-if="ok">hello</div>`
+      const ast = parse(source)
+      parse(`<template>\n<p>\na\ndifferent\nfile\n</p>\n</template>\n`)
+      transform(ast, { nodeTransforms: [transformIf, transformElement] })
+      const ifNode = ast.children[0] as IfNode
+      expect(ifNode.loc.source).toBe(source)
+      expect(ifNode.loc.start).toEqual({ line: 1, column: 1, offset: 0 })
+      expect(ifNode.loc.end).toEqual({ line: 1, column: 27, offset: 26 })
+      expect(ifNode.loc).not.toBe(ifNode.branches[0].children[0].loc)
+      expect(ifNode.loc.start).not.toBe(
+        ifNode.branches[0].children[0].loc.start,
+      )
+    })
   })
 
   describe('errors', () => {
