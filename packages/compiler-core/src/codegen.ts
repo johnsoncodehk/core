@@ -28,7 +28,7 @@ import {
   getVNodeHelper,
   locStub,
 } from './ast'
-import { SourceMapGenerator } from 'source-map-js'
+import { type SourceMapSegment, encodeMappings } from 'muggle-string'
 import {
   advancePositionWithMutation,
   assert,
@@ -36,6 +36,7 @@ import {
   toValidAssetId,
 } from './utils'
 import {
+  NOOP,
   PatchFlagNames,
   type PatchFlags,
   isArray,
@@ -61,23 +62,17 @@ import {
 import type { ImportItem } from './transform'
 
 /**
- * The `SourceMapGenerator` type from `source-map-js` is a bit incomplete as it
- * misses `toJSON()`. We also need to add types for internal properties which we
- * need to access for better performance.
- *
- * Since TS 5.3, dts generation starts to strangely include broken triple slash
- * references for source-map-js, so we are inlining all source map related types
- * here to workaround that.
+ * The source map of generated code to its one source, kept as the segments of
+ * each generated line, added in the order of their generated positions, until
+ * `toJSON()` encodes them.
  */
 export interface CodegenSourceMapGenerator {
-  setSourceContent(sourceFile: string, sourceContent: string): void
-  // SourceMapGenerator has this method but the types do not include it
+  addMapping(
+    generated: { line: number; column: number },
+    original: Position,
+    name?: string | null,
+  ): void
   toJSON(): RawSourceMap
-  _sources: Set<string>
-  _names: Set<string>
-  _mappings: {
-    add(mapping: MappingItem): void
-  }
 }
 
 export interface RawSourceMap {
@@ -88,15 +83,6 @@ export interface RawSourceMap {
   names: string[]
   sourcesContent?: string[]
   mappings: string
-}
-
-interface MappingItem {
-  source: string
-  generatedLine: number
-  generatedColumn: number
-  originalLine: number
-  originalColumn: number
-  name: string | null
 }
 
 const PURE_ANNOTATION = `/*@__PURE__*/`
@@ -200,7 +186,7 @@ function createCodegenContext(
             }
           }
           if (node.loc.source) {
-            addMapping(node.loc.start, name)
+            context.map.addMapping(context, node.loc.start, name)
           }
         }
         if (newlineIndex === NewlineType.Unknown) {
@@ -239,7 +225,7 @@ function createCodegenContext(
           }
         }
         if (node && node.loc !== locStub && node.loc.source) {
-          addMapping(node.loc.end)
+          context.map.addMapping(context, node.loc.end)
         }
       }
     },
@@ -262,32 +248,53 @@ function createCodegenContext(
     context.push('\n' + `  `.repeat(n), NewlineType.Start)
   }
 
-  function addMapping(loc: Position, name: string | null = null) {
-    // we use the private property to directly add the mapping
-    // because the addMapping() implementation in source-map-js has a bunch of
-    // unnecessary arg and validation checks that are pure overhead in our case.
-    const { _names, _mappings } = context.map!
-    if (name !== null && !_names.has(name)) _names.add(name)
-    _mappings.add({
-      originalLine: loc.line,
-      originalColumn: loc.column - 1, // source-map column is 0 based
-      generatedLine: context.line,
-      generatedColumn: context.column - 1,
-      source: filename,
-      name,
-    })
-  }
-
   if (!__BROWSER__ && sourceMap) {
-    // lazy require source-map implementation, only in non-browser builds
-    context.map =
-      new SourceMapGenerator() as unknown as CodegenSourceMapGenerator
-    context.map.setSourceContent(filename, context.source)
-    context.map._sources.add(filename)
+    context.map = createCodegenSourceMapGenerator(filename, context.source)
   }
 
   return context
 }
+
+export const createCodegenSourceMapGenerator: (
+  filename: string,
+  source: string,
+) => CodegenSourceMapGenerator = __BROWSER__
+  ? (NOOP as any)
+  : (filename, source) => {
+      const names: string[] = []
+      const nameIndexes = new Map<string, number>()
+      const mappings: SourceMapSegment[][] = []
+      return {
+        addMapping(generated, original, name = null) {
+          while (mappings.length < generated.line) mappings.push([])
+          // source map lines and columns are 0 based
+          const segment: SourceMapSegment = [
+            generated.column - 1,
+            0,
+            original.line - 1,
+            original.column - 1,
+          ]
+          if (name !== null) {
+            let index = nameIndexes.get(name)
+            if (index === undefined) {
+              nameIndexes.set(name, (index = names.length))
+              names.push(name)
+            }
+            segment.push(index)
+          }
+          mappings[generated.line - 1].push(segment)
+        },
+        toJSON() {
+          return {
+            version: 3,
+            sources: [filename],
+            names,
+            mappings: encodeMappings(mappings),
+            sourcesContent: [source],
+          } as unknown as RawSourceMap
+        },
+      }
+    }
 
 export function generate(
   ast: RootNode,

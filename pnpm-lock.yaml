@@ -318,6 +318,9 @@ importers:
       serve-handler:
         specifier: ^6.1.7
         version: 6.1.7
+      source-map-js:
+        specifier: 'catalog:'
+        version: 1.2.2
       todomvc-app-css:
         specifier: ^2.4.3
         version: 2.4.3
@@ -486,9 +489,9 @@ importers:
       estree-walker:
         specifier: 'catalog:'
         version: 2.0.2
-      source-map-js:
+      muggle-string:
         specifier: 'catalog:'
-        version: 1.2.2
+        version: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa
     devDependencies:
       '@babel/types':
         specifier: 'catalog:'
@@ -590,9 +593,6 @@ importers:
       estree-walker:
         specifier: 'catalog:'
         version: 2.0.2
-      source-map-js:
-        specifier: 'catalog:'
-        version: 1.2.2
 
   packages/reactivity:
     dependencies:
@@ -702,9 +702,9 @@ importers:
       estree-walker:
         specifier: 'catalog:'
         version: 2.0.2
-      source-map-js:
+      muggle-string:
         specifier: 'catalog:'
-        version: 1.2.2
+        version: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa
       vue:
         specifier: workspace:*
         version: link:../vue
