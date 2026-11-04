@@ -76,32 +76,34 @@ export interface RawSourceMap {
  * then the segments stay in the non-enumerable `_segments` for Vue to read
  * without decoding; after it, only the encoded string is kept.
  */
-export function defineMappings(
+export const defineMappings: (
   map: object,
   segments: SourceMapSegment[][],
-): RawSourceMap {
-  const set = (mappings: string) => {
-    Object.defineProperty(map, 'mappings', {
-      value: mappings,
-      writable: true,
-      enumerable: true,
-      configurable: true,
-    })
-    delete (map as { _segments?: unknown })._segments
-    return mappings
-  }
-  Object.defineProperty(map, 'mappings', {
-    get: () => set(encodeMappings(segments)),
-    set,
-    enumerable: true,
-    configurable: true,
-  })
-  Object.defineProperty(map, '_segments', {
-    value: segments,
-    configurable: true,
-  })
-  return map as RawSourceMap
-}
+) => RawSourceMap = __BROWSER__
+  ? (NOOP as any)
+  : (map, segments) => {
+      const set = (mappings: string) => {
+        Object.defineProperty(map, 'mappings', {
+          value: mappings,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        })
+        delete (map as { _segments?: unknown })._segments
+        return mappings
+      }
+      Object.defineProperty(map, 'mappings', {
+        get: () => set(encodeMappings(segments)),
+        set,
+        enumerable: true,
+        configurable: true,
+      })
+      Object.defineProperty(map, '_segments', {
+        value: segments,
+        configurable: true,
+      })
+      return map as RawSourceMap
+    }
 
 /**
  * The segments of a map from `defineMappings` whose `mappings` have not been
