@@ -210,6 +210,7 @@ export class CodegenContext {
       mode: 'module',
       prefixIdentifiers: true,
       sourceMap: false,
+      pieceSource: null,
       filename: `template.vue.html`,
       scopeId: null,
       runtimeGlobalName: `Vue`,

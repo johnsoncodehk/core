@@ -147,7 +147,7 @@ export function codeFragmentToString(
   code: CodeFragment[],
   context: CodegenContext,
 ): string {
-  const source = { content: context.ir.source }
+  const source = context.options.pieceSource || { content: context.ir.source }
   const pieces =
     !__BROWSER__ && context.options.sourceMap
       ? (context.pieces = [createSourcePiece(source)])

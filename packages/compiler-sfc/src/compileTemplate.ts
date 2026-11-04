@@ -8,11 +8,7 @@ import type {
   RawSourceMap,
   RootNode,
 } from '@vue/compiler-core'
-import {
-  type SourceMapSegment,
-  decodeMappings,
-  encodeMappings,
-} from 'muggle-string'
+import { type Source, decodeMappings, rewritePieceText } from 'muggle-string'
 import {
   type AssetURLOptions,
   type AssetURLTagConfig,
@@ -141,11 +137,14 @@ export function compileTemplate(
     : false
   if (preprocessor) {
     try {
-      return doCompileTemplate({
-        ...options,
-        source: preprocess(options, preprocessor),
-        ast: undefined, // invalidate AST if template goes through preprocessor
-      })
+      return doCompileTemplate(
+        {
+          ...options,
+          source: preprocess(options, preprocessor),
+          ast: undefined, // invalidate AST if template goes through preprocessor
+        },
+        true,
+      )
     } catch (e: any) {
       return {
         code: `export default function render() {}`,
@@ -170,22 +169,25 @@ export function compileTemplate(
   }
 }
 
-function doCompileTemplate({
-  filename,
-  id,
-  scoped,
-  slotted,
-  inMap,
-  source,
-  ast: inAST,
-  ssr = false,
-  vapor = false,
-  ssrCssVars,
-  isProd = false,
-  compiler,
-  compilerOptions = {},
-  transformAssetUrls,
-}: SFCTemplateCompileOptions): SFCTemplateCompileResults {
+function doCompileTemplate(
+  {
+    filename,
+    id,
+    scoped,
+    slotted,
+    inMap,
+    source,
+    ast: inAST,
+    ssr = false,
+    vapor = false,
+    ssrCssVars,
+    isProd = false,
+    compiler,
+    compilerOptions = {},
+    transformAssetUrls,
+  }: SFCTemplateCompileOptions,
+  preprocessed = false,
+): SFCTemplateCompileResults {
   const errors: CompilerError[] = []
   const warnings: CompilerError[] = []
 
@@ -220,6 +222,7 @@ function doCompileTemplate({
       ? (CompilerVapor as TemplateCompiler)
       : CompilerDOM
   compiler = compiler || defaultCompiler
+  const { pieceSource } = compilerOptions
 
   if (compiler !== defaultCompiler) {
     // user using custom compiler, this means we cannot reuse the AST from
@@ -263,16 +266,27 @@ function doCompileTemplate({
       filename,
       onError: e => errors.push(e),
       onWarn: w => warnings.push(w),
+      pieceSource:
+        inAST && pieceSource && pieceSource.content === inAST.source
+          ? pieceSource
+          : undefined,
     },
   )
 
-  // inMap should be the map produced by ./parse.ts which is a simple line-only
-  // mapping. If it is present, we need to adjust the final map and errors to
-  // reflect the original line numbers.
-  if (inMap && !inAST) {
-    if (map) {
-      map = shiftMap(inMap, map)
-      pieces = undefined
+  if (preprocessed) {
+    // the preprocessor gives no positions of its output in the template
+    map = pieces = undefined
+  } else if (inMap && !inAST) {
+    // inMap should be the map produced by ./parse.ts, which places `source` in
+    // the SFC. The map is rendered from the pieces shifted there, and errors
+    // are adjusted to reflect the original line numbers.
+    pieces = pieces && shiftPieces(pieces, source, inMap, pieceSource)
+    if (pieces) {
+      map = CompilerDOM.createSourceMap(inMap.sources[0], pieces)
+      if (inMap.file != null) map.file = inMap.file
+      if (inMap.sourceRoot != null) map.sourceRoot = inMap.sourceRoot
+    } else {
+      map = undefined
     }
     if (errors.length) {
       patchErrors(errors, source, inMap)
@@ -304,44 +318,42 @@ function doCompileTemplate({
   }
 }
 
-// `inMap` maps `source` by a shift of lines and columns, which its first
-// segment with a source gives
-function shiftMap(inMap: RawSourceMap, map: RawSourceMap): RawSourceMap {
-  // decode only up to the first segment, unless it has no source
-  let lines = decodeMappings(/^;*[^,;]*/.exec(inMap.mappings)![0])
-  if (lines[lines.length - 1].every(s => s.length === 1)) {
-    lines = decodeMappings(inMap.mappings)
+/**
+ * The pieces of `source` in `pieces` as those of the SFC that `inMap` places
+ * `source` in, of `into` if it is that SFC
+ */
+function shiftPieces(
+  pieces: CodegenPiece[],
+  source: string,
+  inMap: RawSourceMap,
+  into: Source | null | undefined,
+): CodegenPiece[] | undefined {
+  const sfc = inMap.sourcesContent && inMap.sourcesContent[0]
+  if (sfc == null) return
+  // `source` starts on the line its first segment is shifted to
+  const lines = decodeMappings(/^;*[^,;]*/.exec(inMap.mappings)![0])
+  const first = lines[lines.length - 1][0]
+  let lineStart = 0
+  if (first && first.length !== 1) {
+    for (let line = first[2] - (lines.length - 1); line > 0; line--) {
+      lineStart = sfc.indexOf('\n', lineStart) + 1
+    }
   }
-  const line = lines.findIndex(segments => segments.some(s => s.length !== 1))
-  if (line < 0) return map
-  const first = lines[line].find(s => s.length !== 1)!
-
-  const lineShift = first[2] - line
-  const columnShift = first[3] - first[0]
-  const shifted: Omit<RawSourceMap, 'version'> & { version: number } = {
-    version: 3,
-    sources: inMap.sources,
-    names: map.names,
-    mappings: encodeMappings(
-      decodeMappings(map.mappings).map(segments =>
-        segments.map(s => {
-          if (s.length === 1) return s
-          const shiftedSegment: SourceMapSegment = [
-            s[0],
-            0,
-            Math.max(0, s[2] + lineShift),
-            Math.max(0, s[3] + columnShift),
-          ]
-          if (s.length === 5) shiftedSegment.push(s[4])
-          return shiftedSegment
-        }),
-      ),
-    ),
-  }
-  if (inMap.file != null) shifted.file = inMap.file
-  if (inMap.sourceRoot != null) shifted.sourceRoot = inMap.sourceRoot
-  if (inMap.sourcesContent) shifted.sourcesContent = inMap.sourcesContent
-  return shifted as unknown as RawSourceMap
+  const offset = sfc.indexOf(source, lineStart)
+  if (offset < 0) return
+  const sfcSource = into && into.content === sfc ? into : { content: sfc }
+  return pieces.map(p =>
+    typeof p === 'string'
+      ? p
+      : p.source.content === source
+        ? {
+            source: sfcSource,
+            start: p.start + offset,
+            end: p.end + offset,
+            text: p.text,
+          }
+        : rewritePieceText(p),
+  )
 }
 
 function patchErrors(
