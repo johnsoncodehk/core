@@ -15,7 +15,7 @@ import {
 import { encodeMappings } from 'muggle-string'
 import { compileScript, compileTemplate, parse } from '../src'
 import { mergeSourceMaps } from '../src/compileScript'
-import type { SourceMapSegment } from '../src/editedString'
+import type { SourceMapSegment } from 'muggle-string'
 import { templateAnalysisCache } from '../src/script/importUsageCheck'
 
 vi.mock('../src/warn', () => ({
@@ -876,7 +876,6 @@ describe('SFC compile <script setup>', () => {
             })
           })
         }
-        ;(generator as any)._file = scriptMap.file
         return (generator as any).toJSON()
       }
       let seed = 1
@@ -898,8 +897,8 @@ describe('SFC compile <script setup>', () => {
       })
       for (let i = 0; i < 2000; i++) {
         const script = {
+          version: 3 as const,
           ...map(['a.vue', 'b.vue'].slice(0, 1 + random(2)), ['x', 'y']),
-          file: (random(2) ? 'a.js' : undefined)!,
         }
         const template = map(['b.vue', 'a.vue', 'c.vue'].slice(random(3)), [
           'y',
@@ -916,7 +915,6 @@ describe('SFC compile <script setup>', () => {
           JSON.stringify(
             throughSourceMapJs(
               {
-                version: 3,
                 ...script,
                 mappings: encodeMappings(script.mappings),
               } as any,
@@ -929,17 +927,18 @@ describe('SFC compile <script setup>', () => {
     })
 
     test('inline source map names the file as given', () => {
-      const filename = 'src/./App.vue'
-      const { descriptor } = parse(
-        `<script setup>const a = 1</script><template>{{ a }}</template>`,
-        { filename },
-      )
-      for (const inlineTemplate of [false, true]) {
-        const { map } = compileScript(descriptor, {
-          id: mockId,
-          inlineTemplate,
-        })
-        expect(map!.sources).toEqual([filename])
+      for (const filename of ['src/./App.vue', 'C:\\src\\App.vue']) {
+        const { descriptor } = parse(
+          `<script setup>const a = 1</script><template>{{ a }}</template>`,
+          { filename },
+        )
+        for (const inlineTemplate of [false, true]) {
+          const { map } = compileScript(descriptor, {
+            id: mockId,
+            inlineTemplate,
+          })
+          expect(map!.sources).toEqual([filename])
+        }
       }
     })
 
