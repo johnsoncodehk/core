@@ -7,11 +7,6 @@ export { compileStyle, compileStyleAsync } from './compileStyle'
 export { compileScript } from './compileScript'
 export { rewriteDefault, rewriteDefaultAST } from './rewriteDefault'
 export { resolveTypeElements, inferRuntimeType } from './script/resolveType'
-export {
-  decodedMappingsCache,
-  setDecodedMappings,
-  getDecodedMappings,
-} from './sourcemap'
 
 import { type SFCParseResult, parseCache as _parseCache } from './parse'
 // #9521 export parseCache as a simple map to avoid exposing LRU types
@@ -45,6 +40,7 @@ export {
   extractIdentifiers,
   isInDestructureAssignment,
   isStaticProperty,
+  decodedMappings,
 } from '@vue/compiler-core'
 
 // Internals for type resolution

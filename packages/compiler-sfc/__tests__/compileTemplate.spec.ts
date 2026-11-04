@@ -189,6 +189,21 @@ const foobar = 1
   ).toMatchObject({ source: `src/example.vue`, line: 6, column: 13 })
 })
 
+test('source map: inMap not encoded by Vue', () => {
+  const template = parse(`<template><div>{{ foobar }}</div></template>`, {
+    filename: 'example.vue',
+    sourceMap: true,
+  }).descriptor.template!
+
+  expect(() =>
+    compile({
+      filename: 'example.vue',
+      source: template.content,
+      inMap: JSON.parse(JSON.stringify(template.map)),
+    }),
+  ).toThrow('The source map was not encoded by Vue')
+})
+
 test('source map: v-if generated comment should not have original position', () => {
   const template = parse(
     `

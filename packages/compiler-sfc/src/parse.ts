@@ -8,6 +8,7 @@ import {
   type RootNode,
   type SourceLocation,
   createRoot,
+  decodedMappings,
 } from '@vue/compiler-core'
 import * as CompilerDOM from '@vue/compiler-dom'
 import { type SourceMapSegment, encodeMappings } from 'muggle-string'
@@ -18,7 +19,6 @@ import type { ImportBinding } from './compileScript'
 import { isUsedInTemplate } from './script/importUsageCheck'
 import type { LRUCache } from 'lru-cache'
 import { genCacheKey } from '@vue/shared'
-import { setDecodedMappings } from './sourcemap'
 
 export const DEFAULT_FILENAME = 'anonymous.vue'
 
@@ -411,7 +411,7 @@ function generateSourceMap(
     sourceRoot: sourceRoot.replace(/\\/g, '/'),
     sourcesContent: [source],
   } as unknown as RawSourceMap
-  setDecodedMappings(map, mappings)
+  decodedMappings.set(map, mappings)
   return map
 }
 

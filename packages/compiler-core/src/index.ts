@@ -32,12 +32,8 @@ export {
   type CodegenSourceMapGenerator,
   type RawSourceMap,
   type BaseCodegenResult,
+  decodedMappings,
 } from './codegen'
-export {
-  decodedMappingsCache,
-  setDecodedMappings,
-  getDecodedMappings,
-} from './sourcemap'
 export {
   ErrorCodes,
   errorMessages,

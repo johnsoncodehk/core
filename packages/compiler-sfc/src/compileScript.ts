@@ -2,6 +2,7 @@ import {
   BindingTypes,
   type RawSourceMap,
   UNREF,
+  decodedMappings,
   isFunctionType,
   isSimpleIdentifier,
   isStaticNode,
@@ -27,16 +28,8 @@ import type {
   Statement,
 } from '@babel/types'
 import { walk } from 'estree-walker'
-import { decodeMappings, encodeMappings } from 'muggle-string'
+import { encodeMappings } from 'muggle-string'
 import type { DecodedSourceMap, SourceMapSegment } from './editedString'
-import {
-  getDecodedMappings as getCoreDecodedMappings,
-  setDecodedMappings as setCoreDecodedMappings,
-} from '@vue/compiler-core'
-import {
-  getDecodedMappings,
-  setDecodedMappings,
-} from './sourcemap'
 import {
   normalScriptDefaultVar,
   processNormalScript,
@@ -45,6 +38,7 @@ import { genCssVarsCode, getCssVarsHelper } from './style/cssVars'
 import {
   type SFCTemplateCompileOptions,
   compileTemplate,
+  getDecodedMappings,
 } from './compileTemplate'
 import { warnOnce } from './warn'
 import { transformDestructuredProps } from './script/definePropsDestructure'
@@ -1608,13 +1602,7 @@ export function mergeSourceMaps(
   }
 
   add(scriptMap, scriptMap.mappings, 0)
-  add(
-    templateMap,
-    getDecodedMappings(templateMap) ||
-      getCoreDecodedMappings(templateMap) ||
-      decodeMappings(templateMap.mappings),
-    templateLineOffset,
-  )
+  add(templateMap, getDecodedMappings(templateMap), templateLineOffset)
   const mappings: MappedSegment[][] = []
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] || []
@@ -1637,7 +1625,6 @@ export function mergeSourceMaps(
     map.sourcesContent = sources.map(source =>
       contents.has(source) ? contents.get(source)! : (null as any),
     )
-  setDecodedMappings(map, mappings)
-  setCoreDecodedMappings(map, mappings)
+  decodedMappings.set(map as unknown as RawSourceMap, mappings)
   return map as unknown as RawSourceMap
 }

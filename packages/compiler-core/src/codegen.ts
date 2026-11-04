@@ -35,7 +35,6 @@ import {
   isSimpleIdentifier,
   toValidAssetId,
 } from './utils'
-import { setDecodedMappings } from './sourcemap'
 import {
   NOOP,
   PatchFlagNames,
@@ -85,6 +84,14 @@ export interface RawSourceMap {
   sourcesContent?: string[]
   mappings: string
 }
+
+/**
+ * The segments of each source map Vue encodes, keyed by the map object. Vue
+ * reads the segments of a map only from here and never decodes mappings, so it
+ * only accepts the maps it encoded itself.
+ */
+export const decodedMappings: WeakMap<RawSourceMap, SourceMapSegment[][]> =
+  new WeakMap()
 
 const PURE_ANNOTATION = `/*@__PURE__*/`
 
@@ -293,7 +300,7 @@ export const createCodegenSourceMapGenerator: (
             mappings: encodeMappings(mappings),
             sourcesContent: [source],
           } as unknown as RawSourceMap
-          setDecodedMappings(map, mappings)
+          decodedMappings.set(map, mappings)
           return map
         },
       }

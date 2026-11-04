@@ -1,6 +1,6 @@
 import { vi } from 'vite-plus/test'
 import { parse as babelParse } from '@babel/parser'
-import { BindingTypes } from '@vue/compiler-core'
+import { BindingTypes, decodedMappings } from '@vue/compiler-core'
 import {
   assertCode,
   compileSFCScript as compile,
@@ -911,6 +911,7 @@ describe('SFC compile <script setup>', () => {
           ...template,
           mappings: encodeMappings(template.mappings),
         } as unknown as RawSourceMap
+        decodedMappings.set(encoded, template.mappings)
         const offset = random(4)
         expect(JSON.stringify(mergeSourceMaps(script, encoded, offset))).toBe(
           JSON.stringify(
