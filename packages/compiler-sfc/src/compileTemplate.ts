@@ -7,8 +7,11 @@ import type {
   RawSourceMap,
   RootNode,
 } from '@vue/compiler-core'
-import { defineMappings, getSegments } from '@vue/compiler-core'
-import { type SourceMapSegment, decodeMappings } from 'muggle-string'
+import {
+  type SourceMapSegment,
+  decodeMappings,
+  encodeMappings,
+} from 'muggle-string'
 import {
   type AssetURLOptions,
   type AssetURLTagConfig,
@@ -302,10 +305,10 @@ function mapLines(oldMap: RawSourceMap, newMap: RawSourceMap): RawSourceMap {
   if (!oldMap) return newMap
   if (!newMap) return oldMap
 
-  const oldLines = getDecodedMappings(oldMap).map(segments =>
+  const oldLines = decodeMappings(oldMap.mappings).map(segments =>
     segments.find(s => s.length !== 1),
   )
-  const mappings = getDecodedMappings(newMap).map(segments => {
+  const mappings = decodeMappings(newMap.mappings).map(segments => {
     const mapped: SourceMapSegment[] = []
     for (const s of segments) {
       const line = s.length !== 1 && oldLines[s[2]]
@@ -314,18 +317,16 @@ function mapLines(oldMap: RawSourceMap, newMap: RawSourceMap): RawSourceMap {
     return mapped
   })
 
-  const map = defineMappings(
-    { version: 3, sources: oldMap.sources, names: [] },
-    mappings,
-  )
+  const map: Omit<RawSourceMap, 'version'> & { version: number } = {
+    version: 3,
+    sources: oldMap.sources,
+    names: [],
+    mappings: encodeMappings(mappings),
+  }
   if (oldMap.file != null) map.file = oldMap.file
   if (oldMap.sourceRoot != null) map.sourceRoot = oldMap.sourceRoot
   if (oldMap.sourcesContent) map.sourcesContent = oldMap.sourcesContent
-  return map
-}
-
-export function getDecodedMappings(map: RawSourceMap): SourceMapSegment[][] {
-  return getSegments(map) || decodeMappings(map.mappings)
+  return map as unknown as RawSourceMap
 }
 
 function patchErrors(

@@ -27,8 +27,6 @@ export {
   generate,
   addMapping,
   createSourceMap,
-  defineMappings,
-  getSegments,
   NewlineType,
   type CodegenContext,
   type CodegenResult,

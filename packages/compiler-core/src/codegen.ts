@@ -71,50 +71,6 @@ export interface RawSourceMap {
   mappings: string
 }
 
-/**
- * Gives `map` the `mappings` of `segments`, encoded when first read. Until
- * then the segments stay in the non-enumerable `_segments` for Vue to read
- * without decoding; after it, only the encoded string is kept.
- */
-export const defineMappings: (
-  map: object,
-  segments: SourceMapSegment[][],
-) => RawSourceMap = __BROWSER__
-  ? (NOOP as any)
-  : (map, segments) => {
-      const set = (mappings: string) => {
-        Object.defineProperty(map, 'mappings', {
-          value: mappings,
-          writable: true,
-          enumerable: true,
-          configurable: true,
-        })
-        delete (map as { _segments?: unknown })._segments
-        return mappings
-      }
-      Object.defineProperty(map, 'mappings', {
-        get: () => set(encodeMappings(segments)),
-        set,
-        enumerable: true,
-        configurable: true,
-      })
-      Object.defineProperty(map, '_segments', {
-        value: segments,
-        configurable: true,
-      })
-      return map as RawSourceMap
-    }
-
-/**
- * The segments of a map from `defineMappings` whose `mappings` have not been
- * read yet
- */
-export function getSegments(
-  map: RawSourceMap,
-): SourceMapSegment[][] | undefined {
-  return (map as { _segments?: SourceMapSegment[][] })._segments
-}
-
 const PURE_ANNOTATION = `/*@__PURE__*/`
 
 const aliasHelper = (s: symbol) => `${helperNameMap[s]}: _${helperNameMap[s]}`
@@ -327,18 +283,14 @@ export const createSourceMap: (
   names: Map<string, number>,
 ) => RawSourceMap = __BROWSER__
   ? (NOOP as any)
-  : (filename, source, mappings, names) => {
-      const map = defineMappings(
-        {
-          version: 3,
-          sources: [filename],
-          names: Array.from(names.keys()),
-        },
-        mappings,
-      )
-      map.sourcesContent = [source]
-      return map
-    }
+  : (filename, source, mappings, names) =>
+      ({
+        version: 3,
+        sources: [filename],
+        names: Array.from(names.keys()),
+        mappings: encodeMappings(mappings),
+        sourcesContent: [source],
+      }) as unknown as RawSourceMap
 
 export function generate(
   ast: RootNode,

@@ -2,7 +2,6 @@ import {
   BindingTypes,
   type RawSourceMap,
   UNREF,
-  defineMappings,
   isFunctionType,
   isSimpleIdentifier,
   isStaticNode,
@@ -28,6 +27,7 @@ import type {
   Statement,
 } from '@babel/types'
 import { walk } from 'estree-walker'
+import { decodeMappings, encodeMappings } from 'muggle-string'
 import type { DecodedSourceMap, SourceMapSegment } from './editedString'
 import {
   normalScriptDefaultVar,
@@ -37,7 +37,6 @@ import { genCssVarsCode, getCssVarsHelper } from './style/cssVars'
 import {
   type SFCTemplateCompileOptions,
   compileTemplate,
-  getDecodedMappings,
 } from './compileTemplate'
 import { warnOnce } from './warn'
 import { transformDestructuredProps } from './script/definePropsDestructure'
@@ -1601,7 +1600,7 @@ export function mergeSourceMaps(
   }
 
   add(scriptMap, scriptMap.mappings, 0)
-  add(templateMap, getDecodedMappings(templateMap), templateLineOffset)
+  add(templateMap, decodeMappings(templateMap.mappings), templateLineOffset)
   const mappings: MappedSegment[][] = []
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] || []
@@ -1610,11 +1609,19 @@ export function mergeSourceMaps(
       line.filter((s, j) => !j || compareSegments(line[j - 1], s) !== 0),
     )
   }
-  const map = defineMappings({ version: 3, sources, names }, mappings)
+  const map: Omit<RawSourceMap, 'version' | 'file'> & {
+    version: number
+    file?: string
+  } = {
+    version: 3,
+    sources,
+    names,
+    mappings: encodeMappings(mappings),
+  }
   if (scriptMap.file != null) map.file = scriptMap.file
   if (contents.size)
     map.sourcesContent = sources.map(source =>
       contents.has(source) ? contents.get(source)! : (null as any),
     )
-  return map
+  return map as unknown as RawSourceMap
 }

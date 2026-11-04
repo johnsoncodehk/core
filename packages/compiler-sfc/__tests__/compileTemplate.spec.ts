@@ -1,6 +1,5 @@
 import { type RawSourceMap, SourceMapConsumer } from 'source-map-js'
 import { parse as babelParse } from '@babel/parser'
-import { getSegments } from '@vue/compiler-core'
 import {
   type SFCTemplateCompileOptions,
   compileTemplate,
@@ -188,34 +187,6 @@ const foobar = 1
   expect(
     consumer.originalPositionFor(getPositionInCode(code, 'foobar')),
   ).toMatchObject({ source: `src/example.vue`, line: 6, column: 13 })
-})
-
-test('source map: inMap not encoded by Vue', () => {
-  const template = parse(`<template><div>{{ foobar }}</div></template>`, {
-    filename: 'example.vue',
-    sourceMap: true,
-  }).descriptor.template!
-  const options = { filename: 'example.vue', source: template.content }
-
-  expect(
-    compile({ ...options, inMap: JSON.parse(JSON.stringify(template.map)) })
-      .map,
-  ).toEqual(compile({ ...options, inMap: template.map }).map)
-})
-
-test('source map: a plain RawSourceMap', () => {
-  const { map } = compile({
-    filename: 'example.vue',
-    source: `<div>{{ foobar }}</div>`,
-  })
-  expect(getSegments(map!)).toBeDefined()
-  const json = JSON.parse(JSON.stringify(map))
-  expect(getSegments(map!)).toBeUndefined()
-
-  expect(Object.keys(map!)).toEqual(Object.keys(json))
-  expect(typeof json.mappings).toBe('string')
-  expect({ ...map }).toEqual(json)
-  expect(map!.mappings).toBe(json.mappings)
 })
 
 test('source map: v-if generated comment should not have original position', () => {
