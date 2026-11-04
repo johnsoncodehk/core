@@ -172,6 +172,14 @@ function createCodegenContext(
           )
           mappedEnd = end.offset + pieceOffset
         } else {
+          // a newline ends the line before it, so it maps nowhere
+          if (
+            mappedEnd === -1 &&
+            newlineIndex !== NewlineType.Start &&
+            context.openEnd !== undefined
+          ) {
+            mappedEnd = context.openEnd + pieceOffset
+          }
           addPiece(
             context.pieces,
             code,
@@ -196,17 +204,14 @@ function createCodegenContext(
     },
   }
 
-  // text without a node maps to the end of the last node on its line, or of
-  // the node it is generated in at the start of a line
+  // text without a node maps to the end of the last node on its line, or else
+  // of the node it is generated in
   let mappedEnd = -1
   const source = pieceSource || { content: ast.source }
 
   function newline(n: number) {
     mappedEnd = -1
     context.push('\n' + `  `.repeat(n), NewlineType.Start)
-    if (!__BROWSER__ && context.openEnd !== undefined) {
-      mappedEnd = context.openEnd + pieceOffset
-    }
   }
 
   if (!__BROWSER__ && sourceMap) {
@@ -655,7 +660,12 @@ function genNode(node: CodegenNode | symbol | string, context: CodegenContext) {
   }
   const pieces = !__BROWSER__ && context.pieces
   const openEnd = pieces ? context.openEnd : undefined
-  if (pieces && node.loc.source) {
+  // the loc of a function is that of its first child, not its own
+  if (
+    pieces &&
+    node.loc.source &&
+    node.type !== NodeTypes.JS_FUNCTION_EXPRESSION
+  ) {
     context.openEnd = node.loc.end.offset
   }
   switch (node.type) {
