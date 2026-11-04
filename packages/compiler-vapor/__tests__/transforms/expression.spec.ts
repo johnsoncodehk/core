@@ -922,3 +922,19 @@ test('source map of an identifier after a newline in the expression', () => {
     }),
   ).toMatchObject({ line: 2, column: 2 })
 })
+
+test('source map of the display string call of an interpolation', () => {
+  const { code, map } = compile(`<div>{{ foo }}</div>`, {
+    prefixIdentifiers: true,
+    sourceMap: true,
+  })
+  const lines = code.split('\n')
+  const line = lines.findIndex(l => l.includes('_toDisplayString('))
+  const consumer = new SourceMapConsumer(map as any)
+  expect(
+    consumer.originalPositionFor({
+      line: line + 1,
+      column: lines[line].indexOf('_toDisplayString('),
+    }),
+  ).toMatchObject({ line: 1, column: 8 })
+})
