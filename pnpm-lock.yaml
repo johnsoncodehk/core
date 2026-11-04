@@ -190,8 +190,8 @@ catalogs:
       specifier: ^2.0.2
       version: 2.0.2
     muggle-string:
-      specifier: github:johnsoncodehk/muggle-string#0265578f02e666a15e7b11117b4e3e1101f9ecfa
-      version: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa
+      specifier: ^1.0.3
+      version: 1.0.3
     source-map-js:
       specifier: ^1.2.2
       version: 1.2.2
@@ -491,7 +491,7 @@ importers:
         version: 2.0.2
       muggle-string:
         specifier: 'catalog:'
-        version: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa
+        version: 1.0.3
     devDependencies:
       '@babel/types':
         specifier: 'catalog:'
@@ -531,7 +531,7 @@ importers:
         version: 2.0.2
       muggle-string:
         specifier: 'catalog:'
-        version: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa
+        version: 1.0.3
       postcss:
         specifier: ^8.5.29
         version: 8.5.29
@@ -701,7 +701,7 @@ importers:
         version: 2.0.2
       muggle-string:
         specifier: 'catalog:'
-        version: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa
+        version: 1.0.3
       vue:
         specifier: workspace:*
         version: link:../vue
@@ -3336,9 +3336,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  muggle-string@https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa:
-    resolution: {gitHosted: true, integrity: sha512-IJR6aDonh1iyft8cgG+GZ2NuilqcJiIUoq0kfNEqZMEeUfuTbf0E/6P/5QE5OvW3xFE2HRLOjUVwDyc+RDvOng==, tarball: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa}
-    version: 1.0.2
+  muggle-string@1.0.3:
+    resolution: {integrity: sha512-AWKZWqloOHnvCtw0L4v+PZPWCWjoMwBpimo5GOdUM7giynho7uqcXM+1cK4FyhvDGJAPUmfOXGytSPITp+bF9g==}
     engines: {node: '>=12'}
 
   nanoid@3.3.19:
@@ -5977,7 +5976,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  muggle-string@https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa: {}
+  muggle-string@1.0.3: {}
 
   nanoid@3.3.19: {}
 
