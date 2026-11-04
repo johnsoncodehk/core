@@ -240,8 +240,8 @@ test('source map: inMap without AST is of the source', () => {
 test('custom compiler errors are positioned in the SFC', () => {
   for (const [source, line, column] of [
     [
-      `<script setup>\n// <p v-if="a +"></p>\n</script>\n<template>\n  <p v-if="a +"></p>\n</template>\n`,
-      5,
+      `<script setup>\nconst html = \`\n  <p v-if="a +"></p>\n\`\n</script>\n<template>\n  <p v-if="a +"></p>\n</template>\n`,
+      7,
       12,
     ],
     [
