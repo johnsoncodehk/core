@@ -189,6 +189,9 @@ catalogs:
     estree-walker:
       specifier: ^2.0.2
       version: 2.0.2
+    muggle-string:
+      specifier: github:johnsoncodehk/muggle-string#0265578f02e666a15e7b11117b4e3e1101f9ecfa
+      version: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa
     source-map-js:
       specifier: ^1.2.2
       version: 1.2.2
@@ -524,8 +527,8 @@ importers:
         specifier: 'catalog:'
         version: 2.0.2
       muggle-string:
-        specifier: ^1.0.2
-        version: 1.0.2
+        specifier: 'catalog:'
+        version: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa
       postcss:
         specifier: ^8.5.29
         version: 8.5.29
@@ -3336,8 +3339,9 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  muggle-string@1.0.2:
-    resolution: {integrity: sha512-ZUkzn39oWE7w5KezE0zh2AlW54BjRo0CUo765HoQBd4JCW0tnFUHeF9gPgILnns/5Uu6fAsc/pRuMua1fGhbIg==}
+  muggle-string@https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa:
+    resolution: {gitHosted: true, integrity: sha512-IJR6aDonh1iyft8cgG+GZ2NuilqcJiIUoq0kfNEqZMEeUfuTbf0E/6P/5QE5OvW3xFE2HRLOjUVwDyc+RDvOng==, tarball: https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa}
+    version: 1.0.2
     engines: {node: '>=12'}
 
   nanoid@3.3.19:
@@ -5976,7 +5980,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  muggle-string@1.0.2: {}
+  muggle-string@https://codeload.github.com/johnsoncodehk/muggle-string/tar.gz/0265578f02e666a15e7b11117b4e3e1101f9ecfa: {}
 
   nanoid@3.3.19: {}
 
