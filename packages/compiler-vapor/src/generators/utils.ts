@@ -1,9 +1,8 @@
 import {
-  type CodegenSourceMapGenerator,
   NewlineType,
   type SourceLocation,
+  addMapping,
   advancePositionWithMutation,
-  createCodegenSourceMapGenerator,
   locStub,
 } from '@vue/compiler-dom'
 import { isArray, isString } from '@vue/shared'
@@ -152,14 +151,12 @@ export function getParserOptions(
 export function codeFragmentToString(
   code: CodeFragment[],
   context: CodegenContext,
-): [code: string, map: CodegenSourceMapGenerator | undefined] {
-  const {
-    options: { filename, sourceMap },
-  } = context
-
-  const map = sourceMap
-    ? createCodegenSourceMapGenerator(filename, context.ir.source)
-    : undefined
+): string {
+  if (context.options.sourceMap) {
+    context.mappings = []
+    context.names = new Map()
+  }
+  const { mappings, names } = context
 
   let codegen = ''
   const pos = { line: 1, column: 1, offset: 0 }
@@ -167,7 +164,7 @@ export function codeFragmentToString(
 
   emit(code)
 
-  return [codegen, map]
+  return codegen
 
   function emit(code: CodeFragment[]) {
     for (let frag of code) {
@@ -206,8 +203,8 @@ export function codeFragmentToString(
       }
       codegen += code
 
-      if (map) {
-        if (loc) map.addMapping(pos, loc.start, name)
+      if (mappings) {
+        if (loc) addMapping(mappings, names!, pos, loc.start, name)
         if (newlineIndex === NewlineType.Unknown) {
           // multiple newlines, full iteration
           advancePositionWithMutation(pos, code)
@@ -244,7 +241,7 @@ export function codeFragmentToString(
           }
         }
         if (loc && loc !== locStub) {
-          map.addMapping(pos, loc.end)
+          addMapping(mappings, names!, pos, loc.end)
         }
       }
     }

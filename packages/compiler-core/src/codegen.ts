@@ -61,20 +61,6 @@ import {
 } from './runtimeHelpers'
 import type { ImportItem } from './transform'
 
-/**
- * The source map of generated code to its one source, kept as the segments of
- * each generated line, added in the order of their generated positions, until
- * `toJSON()` encodes them.
- */
-export interface CodegenSourceMapGenerator {
-  addMapping(
-    generated: { line: number; column: number },
-    original: Position,
-    name?: string | null,
-  ): void
-  toJSON(): RawSourceMap
-}
-
 export interface RawSourceMap {
   file?: string
   sourceRoot?: string
@@ -133,7 +119,13 @@ export interface CodegenContext extends Omit<
   offset: number
   indentLevel: number
   pure: boolean
-  map?: CodegenSourceMapGenerator
+  /**
+   * The source map segments of each generated line, added in the order of
+   * their generated positions, when a source map is generated
+   */
+  mappings?: SourceMapSegment[][]
+  /** The index of each source map name, when a source map is generated */
+  names?: Map<string, number>
   helper(key: symbol): string
   push(code: string, newlineIndex?: number, node?: CodegenNode): void
   indent(): void
@@ -178,13 +170,12 @@ function createCodegenContext(
     offset: 0,
     indentLevel: 0,
     pure: false,
-    map: undefined,
     helper(key) {
       return `_${helperNameMap[key]}`
     },
     push(code, newlineIndex = NewlineType.None, node) {
       context.code += code
-      if (!__BROWSER__ && context.map) {
+      if (!__BROWSER__ && context.mappings) {
         if (node) {
           let name
           if (node.type === NodeTypes.SIMPLE_EXPRESSION && !node.isStatic) {
@@ -194,7 +185,13 @@ function createCodegenContext(
             }
           }
           if (node.loc.source) {
-            context.map.addMapping(context, node.loc.start, name)
+            addMapping(
+              context.mappings,
+              context.names!,
+              context,
+              node.loc.start,
+              name,
+            )
           }
         }
         if (newlineIndex === NewlineType.Unknown) {
@@ -233,7 +230,7 @@ function createCodegenContext(
           }
         }
         if (node && node.loc !== locStub && node.loc.source) {
-          context.map.addMapping(context, node.loc.end)
+          addMapping(context.mappings, context.names!, context, node.loc.end)
         }
       }
     },
@@ -257,53 +254,53 @@ function createCodegenContext(
   }
 
   if (!__BROWSER__ && sourceMap) {
-    context.map = createCodegenSourceMapGenerator(filename, context.source)
+    context.mappings = []
+    context.names = new Map()
   }
 
   return context
 }
 
-export const createCodegenSourceMapGenerator: (
+export function addMapping(
+  mappings: SourceMapSegment[][],
+  names: Map<string, number>,
+  generated: { line: number; column: number },
+  original: Position,
+  name: string | null = null,
+): void {
+  while (mappings.length < generated.line) mappings.push([])
+  // source map lines and columns are 0 based
+  const segment: SourceMapSegment = [
+    generated.column - 1,
+    0,
+    original.line - 1,
+    original.column - 1,
+  ]
+  if (name !== null) {
+    let index = names.get(name)
+    if (index === undefined) names.set(name, (index = names.size))
+    segment.push(index)
+  }
+  mappings[generated.line - 1].push(segment)
+}
+
+export const createSourceMap: (
   filename: string,
   source: string,
-) => CodegenSourceMapGenerator = __BROWSER__
+  mappings: SourceMapSegment[][],
+  names: Map<string, number>,
+) => RawSourceMap = __BROWSER__
   ? (NOOP as any)
-  : (filename, source) => {
-      const names: string[] = []
-      const nameIndexes = new Map<string, number>()
-      const mappings: SourceMapSegment[][] = []
-      return {
-        addMapping(generated, original, name = null) {
-          while (mappings.length < generated.line) mappings.push([])
-          // source map lines and columns are 0 based
-          const segment: SourceMapSegment = [
-            generated.column - 1,
-            0,
-            original.line - 1,
-            original.column - 1,
-          ]
-          if (name !== null) {
-            let index = nameIndexes.get(name)
-            if (index === undefined) {
-              nameIndexes.set(name, (index = names.length))
-              names.push(name)
-            }
-            segment.push(index)
-          }
-          mappings[generated.line - 1].push(segment)
-        },
-        toJSON() {
-          const map = {
-            version: 3,
-            sources: [filename],
-            names,
-            mappings: encodeMappings(mappings),
-            sourcesContent: [source],
-          } as unknown as RawSourceMap
-          decodedMappings.set(map, mappings)
-          return map
-        },
-      }
+  : (filename, source, mappings, names) => {
+      const map = {
+        version: 3,
+        sources: [filename],
+        names: Array.from(names.keys()),
+        mappings: encodeMappings(mappings),
+        sourcesContent: [source],
+      } as unknown as RawSourceMap
+      decodedMappings.set(map, mappings)
+      return map
     }
 
 export function generate(
@@ -427,7 +424,15 @@ export function generate(
     ast,
     code: context.code,
     preamble: isSetupInlined ? preambleContext.code : ``,
-    map: context.map ? context.map.toJSON() : undefined,
+    map:
+      !__BROWSER__ && context.mappings
+        ? createSourceMap(
+            context.filename,
+            context.source,
+            context.mappings,
+            context.names!,
+          )
+        : undefined,
     helpers: ast.helpers,
   }
 }
