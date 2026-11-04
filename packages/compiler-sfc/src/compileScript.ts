@@ -2,7 +2,7 @@ import {
   BindingTypes,
   type RawSourceMap,
   UNREF,
-  decodedMappings,
+  defineMappings,
   isFunctionType,
   isSimpleIdentifier,
   isStaticNode,
@@ -28,7 +28,6 @@ import type {
   Statement,
 } from '@babel/types'
 import { walk } from 'estree-walker'
-import { encodeMappings } from 'muggle-string'
 import type { DecodedSourceMap, SourceMapSegment } from './editedString'
 import {
   normalScriptDefaultVar,
@@ -1611,20 +1610,11 @@ export function mergeSourceMaps(
       line.filter((s, j) => !j || compareSegments(line[j - 1], s) !== 0),
     )
   }
-  const map: Omit<RawSourceMap, 'version' | 'file'> & {
-    version: number
-    file?: string
-  } = {
-    version: 3,
-    sources,
-    names,
-    mappings: encodeMappings(mappings),
-  }
+  const map = defineMappings({ version: 3, sources, names }, mappings)
   if (scriptMap.file != null) map.file = scriptMap.file
   if (contents.size)
     map.sourcesContent = sources.map(source =>
       contents.has(source) ? contents.get(source)! : (null as any),
     )
-  decodedMappings.set(map as unknown as RawSourceMap, mappings)
-  return map as unknown as RawSourceMap
+  return map
 }

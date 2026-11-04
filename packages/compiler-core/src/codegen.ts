@@ -72,11 +72,46 @@ export interface RawSourceMap {
 }
 
 /**
- * The segments of each source map Vue encodes, keyed by the map object, so
- * that only the mappings of maps from elsewhere need decoding.
+ * Gives `map` the `mappings` of `segments`, encoded when first read. Until
+ * then the segments stay in the non-enumerable `_segments` for Vue to read
+ * without decoding; after it, only the encoded string is kept.
  */
-export const decodedMappings: WeakMap<RawSourceMap, SourceMapSegment[][]> =
-  new WeakMap()
+export function defineMappings(
+  map: object,
+  segments: SourceMapSegment[][],
+): RawSourceMap {
+  const set = (mappings: string) => {
+    Object.defineProperty(map, 'mappings', {
+      value: mappings,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    })
+    delete (map as { _segments?: unknown })._segments
+    return mappings
+  }
+  Object.defineProperty(map, 'mappings', {
+    get: () => set(encodeMappings(segments)),
+    set,
+    enumerable: true,
+    configurable: true,
+  })
+  Object.defineProperty(map, '_segments', {
+    value: segments,
+    configurable: true,
+  })
+  return map as RawSourceMap
+}
+
+/**
+ * The segments of a map from `defineMappings` whose `mappings` have not been
+ * read yet
+ */
+export function getSegments(
+  map: RawSourceMap,
+): SourceMapSegment[][] | undefined {
+  return (map as { _segments?: SourceMapSegment[][] })._segments
+}
 
 const PURE_ANNOTATION = `/*@__PURE__*/`
 
@@ -291,14 +326,15 @@ export const createSourceMap: (
 ) => RawSourceMap = __BROWSER__
   ? (NOOP as any)
   : (filename, source, mappings, names) => {
-      const map = {
-        version: 3,
-        sources: [filename],
-        names: Array.from(names.keys()),
-        mappings: encodeMappings(mappings),
-        sourcesContent: [source],
-      } as unknown as RawSourceMap
-      decodedMappings.set(map, mappings)
+      const map = defineMappings(
+        {
+          version: 3,
+          sources: [filename],
+          names: Array.from(names.keys()),
+        },
+        mappings,
+      )
+      map.sourcesContent = [source]
       return map
     }
 

@@ -27,12 +27,13 @@ export {
   generate,
   addMapping,
   createSourceMap,
+  defineMappings,
+  getSegments,
   NewlineType,
   type CodegenContext,
   type CodegenResult,
   type RawSourceMap,
   type BaseCodegenResult,
-  decodedMappings,
 } from './codegen'
 export {
   ErrorCodes,

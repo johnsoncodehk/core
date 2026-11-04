@@ -7,12 +7,8 @@ import type {
   RawSourceMap,
   RootNode,
 } from '@vue/compiler-core'
-import { decodedMappings } from '@vue/compiler-core'
-import {
-  type SourceMapSegment,
-  decodeMappings,
-  encodeMappings,
-} from 'muggle-string'
+import { defineMappings, getSegments } from '@vue/compiler-core'
+import { type SourceMapSegment, decodeMappings } from 'muggle-string'
 import {
   type AssetURLOptions,
   type AssetURLTagConfig,
@@ -318,21 +314,18 @@ function mapLines(oldMap: RawSourceMap, newMap: RawSourceMap): RawSourceMap {
     return mapped
   })
 
-  const map: Omit<RawSourceMap, 'version'> & { version: number } = {
-    version: 3,
-    sources: oldMap.sources,
-    names: [],
-    mappings: encodeMappings(mappings),
-  }
+  const map = defineMappings(
+    { version: 3, sources: oldMap.sources, names: [] },
+    mappings,
+  )
   if (oldMap.file != null) map.file = oldMap.file
   if (oldMap.sourceRoot != null) map.sourceRoot = oldMap.sourceRoot
   if (oldMap.sourcesContent) map.sourcesContent = oldMap.sourcesContent
-  decodedMappings.set(map as unknown as RawSourceMap, mappings)
-  return map as unknown as RawSourceMap
+  return map
 }
 
 export function getDecodedMappings(map: RawSourceMap): SourceMapSegment[][] {
-  return decodedMappings.get(map) || decodeMappings(map.mappings)
+  return getSegments(map) || decodeMappings(map.mappings)
 }
 
 function patchErrors(

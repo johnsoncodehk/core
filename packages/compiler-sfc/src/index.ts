@@ -40,7 +40,6 @@ export {
   extractIdentifiers,
   isInDestructureAssignment,
   isStaticProperty,
-  decodedMappings,
 } from '@vue/compiler-core'
 
 // Internals for type resolution
