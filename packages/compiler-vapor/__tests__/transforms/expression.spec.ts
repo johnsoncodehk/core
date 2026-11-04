@@ -1,5 +1,7 @@
 import { BindingTypes } from '@vue/compiler-dom'
+import { SourceMapConsumer } from 'source-map-js'
 import {
+  compile,
   transformChildren,
   transformElement,
   transformText,
@@ -903,4 +905,20 @@ describe('compiler: expression', () => {
       'new (_unref(Foo))()',
     )
   })
+})
+
+test('source map of an identifier after a newline in the expression', () => {
+  const { code, map } = compile(`{{ foo +\n  bar }}`, {
+    prefixIdentifiers: true,
+    sourceMap: true,
+  })
+  const lines = code.split('\n')
+  const line = lines.findIndex(l => l.includes('_ctx.bar'))
+  const consumer = new SourceMapConsumer(map as any)
+  expect(
+    consumer.originalPositionFor({
+      line: line + 1,
+      column: lines[line].indexOf('_ctx.bar'),
+    }),
+  ).toMatchObject({ line: 2, column: 2 })
 })

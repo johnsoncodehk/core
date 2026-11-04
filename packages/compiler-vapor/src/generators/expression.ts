@@ -133,8 +133,8 @@ export function genExpression(
             asParams ? id.name : source,
             context,
             {
-              start: advancePositionWithClone(node.loc.start, source, start),
-              end: advancePositionWithClone(node.loc.start, source, end),
+              start: advancePositionWithClone(node.loc.start, content, start),
+              end: advancePositionWithClone(node.loc.start, content, end),
               source,
             },
             isMemberTarget ? undefined : assignment,
