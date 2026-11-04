@@ -8,7 +8,7 @@ import type {
   RawSourceMap,
   RootNode,
 } from '@vue/compiler-core'
-import { type Source, decodeMappings, rewritePieceText } from 'muggle-string'
+import { type Source, decodeMappings } from 'muggle-string'
 import {
   type AssetURLOptions,
   type AssetURLTagConfig,
@@ -237,6 +237,13 @@ function doCompileTemplate(
     onError: e => errors.push(e),
   })
 
+  // inMap should be the map produced by ./parse.ts, which places `source` in
+  // the SFC, so that the pieces of `source` are those of the SFC
+  const inSFC =
+    inMap && !inAST && !preprocessed
+      ? locateInSFC(inMap, source, pieceSource)
+      : undefined
+
   let { code, ast, preamble, map, pieces, helpers } = compiler.compile(
     inAST || source,
     {
@@ -266,10 +273,12 @@ function doCompileTemplate(
       filename,
       onError: e => errors.push(e),
       onWarn: w => warnings.push(w),
-      pieceSource:
-        inAST && pieceSource && pieceSource.content === inAST.source
+      pieceSource: inSFC
+        ? inSFC.source
+        : inAST && pieceSource && pieceSource.content === inAST.source
           ? pieceSource
           : undefined,
+      pieceOffset: inSFC && inSFC.offset,
     },
   )
 
@@ -277,17 +286,15 @@ function doCompileTemplate(
     // the preprocessor gives no positions of its output in the template
     map = pieces = undefined
   } else if (inMap && !inAST) {
-    // inMap should be the map produced by ./parse.ts, which places `source` in
-    // the SFC. The map is rendered from the pieces shifted there, and errors
-    // are adjusted to reflect the original line numbers.
-    pieces = pieces && shiftPieces(pieces, source, inMap, pieceSource)
-    if (pieces) {
-      map = CompilerDOM.createSourceMap(inMap.sources[0], pieces)
+    // a compiler that gives pieces takes `pieceSource` and `pieceOffset`, so
+    // its map is of the SFC; one that gives none has a map of `source` only
+    if (map && pieces && inSFC) {
       if (inMap.file != null) map.file = inMap.file
       if (inMap.sourceRoot != null) map.sourceRoot = inMap.sourceRoot
     } else {
-      map = undefined
+      map = pieces = undefined
     }
+    // adjust errors to reflect the original line numbers
     if (errors.length) {
       patchErrors(errors, source, inMap)
     }
@@ -318,16 +325,17 @@ function doCompileTemplate(
   }
 }
 
-/**
- * The pieces of `source` in `pieces` as those of the SFC that `inMap` places
- * `source` in, of `into` if it is that SFC
- */
-function shiftPieces(
-  pieces: CodegenPiece[],
-  source: string,
+interface SFCLocation {
+  source: Source
+  offset: number
+}
+
+/** The SFC that `inMap` places `source` in, as `into` if it is that SFC */
+function locateInSFC(
   inMap: RawSourceMap,
+  source: string,
   into: Source | null | undefined,
-): CodegenPiece[] | undefined {
+): SFCLocation | undefined {
   const sfc = inMap.sourcesContent && inMap.sourcesContent[0]
   if (sfc == null) return
   // `source` starts on the line its first segment is shifted to
@@ -341,19 +349,10 @@ function shiftPieces(
   }
   const offset = sfc.indexOf(source, lineStart)
   if (offset < 0) return
-  const sfcSource = into && into.content === sfc ? into : { content: sfc }
-  return pieces.map(p =>
-    typeof p === 'string'
-      ? p
-      : p.source.content === source
-        ? {
-            source: sfcSource,
-            start: p.start + offset,
-            end: p.end + offset,
-            text: p.text,
-          }
-        : rewritePieceText(p),
-  )
+  return {
+    source: into && into.content === sfc ? into : { content: sfc },
+    offset,
+  }
 }
 
 function patchErrors(

@@ -320,6 +320,11 @@ export interface CodegenOptions extends SharedTransformCodegenOptions {
    */
   pieceSource?: Source | null
   /**
+   * @internal Where the source of the AST starts in the content of
+   * `pieceSource`, which the offsets of the pieces are shifted by
+   */
+  pieceOffset?: number
+  /**
    * SFC scoped styles ID
    */
   scopeId?: string | null
