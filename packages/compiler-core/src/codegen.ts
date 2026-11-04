@@ -295,7 +295,7 @@ export function generate(
   // in setup() inline mode, the preamble is generated in a sub context
   // and returned separately.
   const preambleContext = isSetupInlined
-    ? createCodegenContext(ast, options)
+    ? createCodegenContext(ast, { ...options, sourceMap: false })
     : context
   if (!__BROWSER__ && mode === 'module') {
     genModulePreamble(ast, preambleContext, genScopeId, isSetupInlined)
@@ -388,7 +388,7 @@ export function generate(
     code: context.code,
     preamble: isSetupInlined ? preambleContext.code : ``,
     map:
-      !__BROWSER__ && context.pieces
+      !__BROWSER__ && context.pieces && !options.pieceSource
         ? createSourceMap(context.filename, context.pieces)
         : undefined,
     pieces: context.pieces,
