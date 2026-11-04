@@ -284,4 +284,19 @@ describe('compiler: integration tests', () => {
       ).toMatchObject(getPositionInCode(template, original))
     }
   })
+
+  test('source map of a text call', () => {
+    const template = `<div><span/>hello {{ foo }}</div>`
+    const { code, map } = compile(template, {
+      sourceMap: true,
+      filename: `foo.vue`,
+      mode: 'module',
+    })
+    const consumer = new SourceMapConsumer(map as RawSourceMap)
+    expect(
+      consumer.originalPositionFor(
+        getPositionInCode(code, `_createTextVNode(`),
+      ),
+    ).toMatchObject(getPositionInCode(template, `hello`))
+  })
 })
