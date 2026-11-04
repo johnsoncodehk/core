@@ -227,6 +227,15 @@ export function addPiece(
   ) {
     last.text += code
   } else {
+    // a range takes the indentation before it, so its line starts with one segment, not two
+    if (typeof last === 'string') {
+      let indent = last.length
+      while (last.charCodeAt(indent - 1) === 32) indent--
+      if (indent < last.length && last.charCodeAt(indent - 1) === 10) {
+        pieces[pieces.length - 1] = last.slice(0, indent)
+        code = last.slice(indent) + code
+      }
+    }
     pieces.push({ source, start, end, text: code })
   }
 }
